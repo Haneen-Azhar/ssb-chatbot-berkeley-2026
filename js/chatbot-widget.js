@@ -4,7 +4,7 @@
 
 class ChatbotWidget {
   constructor() {
-    this.apiUrl = '/api/chat/stream';
+    this.apiUrl = 'https://ssb-chatbot-backend.vercel.app/api/chat/stream';
     this.messages = [];
     this.isTyping = false;
     this.chatHistory = [];
