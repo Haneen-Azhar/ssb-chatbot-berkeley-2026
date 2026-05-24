@@ -198,6 +198,20 @@ What would you like to know?`,
       const decoder = new TextDecoder();
       let buffer = '';
       let fullResponse = '';
+      let rafId = null;
+      let needsUpdate = false;
+
+      // Smooth rendering with requestAnimationFrame
+      const updateDisplay = () => {
+        if (needsUpdate) {
+          assistantMessage.content = fullResponse;
+          bubbleElement.innerHTML = this.renderMarkdown(fullResponse);
+          this.scrollToBottom();
+          needsUpdate = false;
+        }
+        rafId = requestAnimationFrame(updateDisplay);
+      };
+      rafId = requestAnimationFrame(updateDisplay);
 
       while (true) {
         const { done, value } = await reader.read();
@@ -216,9 +230,7 @@ What would you like to know?`,
 
               if (data.type === 'text') {
                 fullResponse += data.text;
-                assistantMessage.content = fullResponse;
-                bubbleElement.innerHTML = this.renderMarkdown(fullResponse);
-                this.scrollToBottom();
+                needsUpdate = true;
               } else if (data.type === 'done') {
                 // Streaming complete
                 console.log('Stream complete');
@@ -229,6 +241,12 @@ What would you like to know?`,
           }
         }
       }
+
+      // Final update and cleanup
+      cancelAnimationFrame(rafId);
+      assistantMessage.content = fullResponse;
+      bubbleElement.innerHTML = this.renderMarkdown(fullResponse);
+      this.scrollToBottom();
 
       this.chatHistory.push(userMessage, assistantMessage);
 
