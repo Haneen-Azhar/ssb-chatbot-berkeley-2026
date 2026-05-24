@@ -318,10 +318,12 @@ Program Director (PD)
 ### The SPA Six - Key Responsibilities
 
 #### 1. Coordinate Transportation
-- Airport pickups and drop-offs
-- Arrivals and departures
-- Coordinate timing
-- Ensure safe transitions
+**Note:** DOCO/CD arrange contracts and book buses BEFORE program. SPA executes transport during program:
+- Call to confirm buses night before excursions
+- Use transport sheet in Master Schedule to organize logistics
+- Coordinate airport pickups and drop-offs
+- Handle arrivals and departures timing
+- Ensure safe transitions and all transport is ready
 
 #### 2. Run Activities Smoothly
 - Clubs organized
@@ -338,7 +340,7 @@ Program Director (PD)
 #### 4. Support Excursions
 - Academic excursions (coordinate with AM)
 - Non-academic trips
-- Transportation arranged
+- Transportation coordinated (confirm buses, timing - booking done by DOCO/CD before program)
 - Activities planned and executed
 
 #### 5. Enhance Student Experience

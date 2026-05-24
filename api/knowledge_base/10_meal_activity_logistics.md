@@ -525,8 +525,12 @@ See First Aid and Medical Procedures document for full protocol.
 
 **IMPORTANT - Transportation Responsibility:**
 - **BEFORE program starts:** DOCO (Director of Campus Operations) and CD arrange ALL transportation contracts, book buses, negotiate rates, and handle pre-program logistics
-- **DURING program:** SPA handles day-to-day transport coordination (confirmations, scheduling, execution)
-- SPA does NOT book or arrange transport contracts - that's done before they arrive
+- **DURING program:** SPA handles day-to-day transport execution:
+  - Calls to confirm buses the night before
+  - Organizes transport using the transport sheet in Master Schedule
+  - Coordinates timing and logistics with vendors
+  - Ensures all transport is set and ready
+- **What SPA does NOT do:** Book new transport contracts or negotiate rates - that's done before program starts by DOCO/CD
 
 **Pre-Session:**
 1. All excursions confirmed and linked in Master Schedule
