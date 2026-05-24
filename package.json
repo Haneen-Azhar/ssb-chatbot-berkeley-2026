@@ -1,0 +1,21 @@
+{
+  "name": "ssb-chatbot-berkeley-2026",
+  "version": "2.0.0",
+  "description": "Summer Springboard Berkeley 2026 Chatbot - Unified Frontend & Backend",
+  "type": "module",
+  "scripts": {
+    "start": "node api/src/server.js",
+    "dev": "node api/src/server.js",
+    "install-api": "cd api && npm install"
+  },
+  "keywords": ["chatbot", "anthropic", "claude", "summer-springboard", "berkeley"],
+  "author": "Haneen Azhar",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "axios": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0"
+  }
+}

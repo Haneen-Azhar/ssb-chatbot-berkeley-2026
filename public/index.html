@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Berkeley B Summer Staff Portal</title>
+  <meta content="Berkeley B Summer Staff Portal - Home" name="description">
+  <meta content="Berkeley B Summer Staff Portal" property="og:title">
+  <meta content="Berkeley B Summer Staff Portal - Home" property="og:description">
+  <meta property="og:type" content="website">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/normalize.css" rel="stylesheet" type="text/css">
+  <link href="css/berkeley-portal.css" rel="stylesheet" type="text/css">
+  <link href="css/chatbot-widget.css" rel="stylesheet" type="text/css">
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon">
+</head>
+<body class="homepage">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">Berkeley B Summer Staff Portal</h2>
+      <button class="sidebar-close" aria-label="Close navigation menu"></button>
+    </div>
+    <nav class="main-navigation">
+      <ul class="nav-menu">
+        <li class="nav-item active"><a href="index.html">Home</a></li>
+        <li class="nav-item"><a href="schedules-groups-lists.html">Schedules, Groups, & Lists</a></li>
+        <li class="nav-item"><a href="course-specific-info.html">Course-Specific Info</a></li>
+        <li class="nav-item"><a href="important-resources.html">Important Resources</a></li>
+        <li class="nav-item"><a href="cdamspa-resources.html">CD/AM/SPA Resources</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay"></div>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <h2 class="hero-title">Berkeley B Summer Staff Portal</h2>
+        <p class="hero-subtitle">Welcome to the staff portal</p>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="content-container">
+        <div class="welcome-message">
+          <p>Use the navigation menu to access different sections of the portal.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-links">
+          <a href="#" class="footer-link">Report abuse</a>
+          <span class="footer-separator">|</span>
+          <a href="#" class="footer-link">Page details</a>
+        </div>
+        <div class="footer-timestamp">
+          <span>Page updated</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Mobile menu toggle functionality
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    const sidebarClose = document.querySelector('.sidebar-close');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+
+    function toggleMenu() {
+      menuToggle.classList.toggle('active');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+
+      // Prevent body scroll when menu is open
+      if (sidebar.classList.contains('open')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+    sidebarClose.addEventListener('click', toggleMenu);
+
+    // Close menu when clicking nav links
+    const navLinks = document.querySelectorAll('.nav-item a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (sidebar.classList.contains('open')) {
+          toggleMenu();
+        }
+      });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        toggleMenu();
+      }
+    });
+  </script>
+
+  <!-- SSB Chatbot Widget -->
+  <script src="js/chatbot-widget.js?v=6"></script>
+</body>
+</html>
