@@ -99,10 +99,9 @@ class ChatbotWidget {
       }
     });
 
-    // Auto-resize textarea
+    // Auto-resize textarea with improved handling
     this.input.addEventListener('input', () => {
-      this.input.style.height = 'auto';
-      this.input.style.height = Math.min(this.input.scrollHeight, 120) + 'px';
+      this.autoResizeTextarea();
     });
 
     // Escape to close
@@ -111,6 +110,26 @@ class ChatbotWidget {
         this.toggleWidget();
       }
     });
+
+    // Safari mobile viewport fix - handle keyboard appearance
+    this.handleMobileViewport();
+  }
+
+  autoResizeTextarea() {
+    this.input.style.height = 'auto';
+    const newHeight = Math.min(this.input.scrollHeight, 120);
+    this.input.style.height = newHeight + 'px';
+  }
+
+  handleMobileViewport() {
+    // Fix for Safari mobile keyboard pushing content
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      this.input.addEventListener('focus', () => {
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 300);
+      });
+    }
   }
 
   toggleWidget() {
@@ -152,8 +171,11 @@ What would you like to know?`,
 
     this.messages.push(userMessage);
     this.renderMessage(userMessage);
+
+    // Reset input with proper focus management
     this.input.value = '';
     this.input.style.height = 'auto';
+    this.input.blur(); // Blur on mobile to hide keyboard temporarily
 
     // Show typing indicator
     this.showTypingIndicator();
@@ -249,6 +271,11 @@ What would you like to know?`,
       this.scrollToBottom();
 
       this.chatHistory.push(userMessage, assistantMessage);
+
+      // Re-focus input after response for better UX (desktop only)
+      if (window.innerWidth > 768) {
+        this.input.focus();
+      }
 
     } catch (error) {
       console.error('Chatbot error:', error);
@@ -357,10 +384,14 @@ For urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`,
     }
   }
 
-  scrollToBottom() {
-    setTimeout(() => {
-      this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-    }, 100);
+  scrollToBottom(smooth = false) {
+    requestAnimationFrame(() => {
+      const scrollOptions = {
+        top: this.messagesContainer.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      };
+      this.messagesContainer.scrollTo(scrollOptions);
+    });
   }
 
   formatTime(timestamp) {
