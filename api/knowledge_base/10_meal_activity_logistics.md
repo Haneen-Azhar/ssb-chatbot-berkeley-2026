@@ -523,9 +523,14 @@ See First Aid and Medical Procedures document for full protocol.
 
 ### Excursion Planning (SPA and CD)
 
+**IMPORTANT - Transportation Responsibility:**
+- **BEFORE program starts:** DOCO (Director of Campus Operations) and CD arrange ALL transportation contracts, book buses, negotiate rates, and handle pre-program logistics
+- **DURING program:** SPA handles day-to-day transport coordination (confirmations, scheduling, execution)
+- SPA does NOT book or arrange transport contracts - that's done before they arrive
+
 **Pre-Session:**
 1. All excursions confirmed and linked in Master Schedule
-2. Transportation arranged (coach buses usually)
+2. Transportation arranged (coach buses usually) - **handled by DOCO/CD before program**
 3. Tickets/admissions purchased
 4. Dietary accommodations arranged
 5. Emergency plans in place
