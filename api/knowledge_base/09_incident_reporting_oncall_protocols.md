@@ -2,21 +2,125 @@
 
 ## 🚨 REPORTING QUICK REFERENCE
 
-**Need to report something? Start here:**
+**Need to report something? Ask yourself these two questions:**
 
-| Report Type | When to Use | How to File |
-|-------------|-------------|-------------|
-| **alerts@ Email** | GREEN: Minor issues, FYI to HQ | Email: **alerts@summerspringboard.com** |
-| **Observation Report** | GREEN: Staff coaching (minor) | Staff Performance Tracker (ask PD for link) |
-| **Incident Report** | YELLOW/RED: Formal documentation | **Form:** https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform<br>**Email:** alerts@summerspringboard.com (subject: INCIDENT REPORT)<br>**Photo:** Text/email to your PD |
+### Question 1: Is this about a STUDENT or a STAFF MEMBER?
 
-**Key Contacts:**
-- 📞 **SSB 24/7 Helpline:** +1.858.779.0555
+**If it's about a STUDENT** → Go to Question 2
+**If it's about a STAFF MEMBER** → Use **Observation Report** (see Staff Performance section below)
+
+### Question 2: Does this STUDENT situation need formal documentation?
+
+**YES - File an Incident Report if ANY of these apply:**
+- ✅ **Student Code of Conduct was broken** (behavioral issues, rule violations)
+- ✅ **Medical clinic visit happened** (even if minor)
+- ✅ **Police were involved** (or could be involved)
+- ✅ **You need documentation from the source** (for liability, parent communication, or follow-up)
+- ✅ **When in doubt** (better to over-document!)
+
+**NO - Use alerts@ email if:**
+- ℹ️ Minor situation, handled on campus, just needs HQ awareness
+- ℹ️ FYI information (flight delays, schedule changes, minor updates)
+- ℹ️ Quick questions or clarifications
+
+---
+
+## 📋 THE THREE REPORT TYPES EXPLAINED
+
+### 1. Incident Report (for STUDENTS)
+
+**USE WHEN:**
+- ✅ Anything that requires documentation from the source
+- ✅ Student Code of Conduct is broken
+- ✅ Medical clinic visits
+- ✅ Police reports
+- ✅ Any situation that could involve parents, legal issues, or liability
+
+**REAL EXAMPLES:**
+- Student twisted ankle going up stairs, asking for pain medication → **YES, Incident Report** (potential medical clinic visit)
+- Student caught with alcohol or drugs in dorm → **YES, Incident Report** (COC violation)
+- Student makes threat toward another student → **YES, Incident Report** (COC violation, documentation needed)
+- Students break curfew → **YES, Incident Report** (COC violation)
+- Student reports being bullied → **YES, Incident Report** (needs documentation)
+- Student violates campus boundaries → **YES, Incident Report** (COC violation)
+- Roommate conflict escalates to verbal argument → **YES, Incident Report** (documentation for pattern tracking)
+
+**HOW TO FILE (choose one):**
+- **Method 1 - Online Form (preferred):** https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform
+- **Method 2 - Email:** alerts@summerspringboard.com (subject: "INCIDENT REPORT: [description]")
+- **Method 3 - Photo:** Text or email photo of written report to your Program Director
+
+### 2. alerts@ Email (for MINOR student situations or FYI)
+
+**USE WHEN:**
+- ℹ️ Minor issue that's already handled on campus
+- ℹ️ Just need to keep HQ in the loop
+- ℹ️ Quick updates or questions
+- ℹ️ No formal documentation needed
+
+**REAL EXAMPLES:**
+- Flight delay, all students arrived safely → **YES, alerts@ email**
+- Student forgot their phone charger, borrowed one from mentor → **YES, alerts@ email** (just FYI)
+- Minor homesickness, mentor talked with student, student feeling better → **YES, alerts@ email**
+- Schedule change question → **YES, alerts@ email**
+- Student asked about program activities → **NO REPORT NEEDED** (just answer them!)
+
+**HOW TO FILE:**
+1. Email: **alerts@summerspringboard.com**
+2. Subject: Brief description
+3. Body: Who, what, where, when
+4. Watch for "handling" response from on-call staff
+5. If you're handling it, reply all with "handling" and remove alerts@ from thread
+
+### 3. Observation Report (for STAFF performance only)
+
+**USE WHEN:**
+- This is about a STAFF MEMBER's performance (not students!)
+- Coaching needed
+- Pattern monitoring
+- Performance issues
+
+**STAFF PERFORMANCE LEVELS (Stoplight System):**
+- 🟢 **GREEN:** Coaching and pattern monitoring
+- 🟡 **YELLOW:** Verbal warning and coaching tracking
+- 🟠 **ORANGE:** Written warning and probationary period
+- 🔴 **CRITICAL:** Immediate termination
+
+**REAL EXAMPLES:**
+- Mentor showed up 10 minutes late to duty (first time) → **GREEN, Observation Report**
+- Mentor not engaging with students during activities → **GREEN, Observation Report**
+- Mentor violated phone policy (second time) → **YELLOW, Observation Report**
+- Mentor left students unsupervised → **ORANGE or CRITICAL, Observation Report + Incident Report**
+
+**HOW TO FILE:**
+- Use the **Staff Performance Tracker** (ask your Campus Director or Program Director for the link)
+- CD coordinates with PD on resolution
+
+---
+
+## 🔑 KEY CONTACTS
+
+**24/7 Emergency Support:**
+- 📞 **SSB Helpline:** +1.858.779.0555
 - 📞 **Risk Management (Maria):** 347-210-4976
-- 📞 **Your Campus Director:** [in your phone contacts]
-- 📞 **Your Program Director:** [in your phone contacts]
 
-**Remember:** When in doubt, file an Incident Report. Better to over-document than under-document.
+**Your Direct Contacts:**
+- 📞 **Your Campus Director (CD):** [in your phone]
+- 📞 **Your Program Director (PD):** [in your phone]
+
+**Email:**
+- 📧 **alerts@summerspringboard.com**
+
+---
+
+## ⚡ GOLDEN RULE
+
+**"If in doubt, escalate it!!! We can always de-escalate!"**
+
+When you're not sure if something needs an Incident Report:
+1. **FILE THE INCIDENT REPORT** (better to over-document)
+2. **Also send alerts@ email** if time-sensitive
+3. **Call your CD/PD** if it's urgent
 
 ---
 
@@ -188,35 +292,43 @@
 - Close case when fully resolved
 - Share lessons learned with team
 
-## Case Management - Green/Yellow/Red System
+## Case Severity Levels (GREEN/YELLOW/RED)
 
-### GREEN Cases
+**IMPORTANT:** This system describes how **SERIOUS** a student incident is and who manages it. This is DIFFERENT from which report type to use.
 
-**Management:** Usually managed in the field/on campus
+**Which report should I file?**
+- **If any documentation is needed** → Incident Report
+- **If it's minor and just FYI** → alerts@ email
+- **If it's a staff performance issue** → Observation Report
 
-**Characteristics:**
-- Risk: Low
-- Duration: Brief
-- Intensity: Low to moderate
-- Frequency: Usually linked to a specific event
-- Severity: Low
+---
 
-**Examples:**
-- Student feeling homesick
-- Minor roommate conflict
-- Student forgets to check in on REACH
-- Late to class once
-- Minor dietary preference issue
+### 🟢 GREEN Cases (Minor)
+
+**Who Manages:** Campus Director and team (on campus)
+
+**Severity:** Low risk, brief duration, low to moderate intensity
+
+**Report Type:**
+- ✅ **Incident Report** if it needs documentation or could become a pattern
+- ℹ️ **alerts@ email** if it's just FYI and fully handled
+
+**EXAMPLES:**
+- Student feeling homesick (talked with mentor, feeling better) → **alerts@ email** (FYI only)
+- Minor roommate conflict → **Incident Report** (document for pattern tracking)
+- Student forgets to check in on REACH → **alerts@ email** or **Incident Report** depending on frequency
+- Late to class once → **Incident Report** (COC violation, even if minor)
+- Minor dietary preference issue (resolved) → **alerts@ email** (FYI only)
 
 **Response:**
 - Handled by Campus Director and team
-- Document in staff notes
-- May send email to alerts@ for tracking
-- No HQ involvement needed unless pattern develops
+- Send to alerts@ for HQ awareness
+- File Incident Report if documentation needed
+- No major HQ involvement unless pattern develops
 
-### YELLOW Cases
+### 🟡 YELLOW Cases (Moderate)
 
-**Management:** Usually managed by field team on campus and supported by HQ team
+**Who Manages:** Field team on campus + HQ support
 
 **Characteristics:**
 - Risk: Low-moderate
@@ -225,50 +337,55 @@
 - Frequency: Daily/weekly
 - Severity: Low-moderate
 
-**Examples:**
-- Student repeatedly late to class
-- Ongoing roommate conflicts
-- Student struggling academically
-- Minor behavioral issues forming pattern
-- Parent expressing repeated concerns
+**Report Type:**
+- ✅ **Incident Report REQUIRED** (all YELLOW cases need documentation)
+- ✅ **Also send alerts@ email** for immediate HQ awareness
+
+**EXAMPLES:**
+- Student repeatedly late to class → **Incident Report** (COC violation pattern)
+- Ongoing roommate conflicts → **Incident Report** (pattern, needs documentation)
+- Student struggling academically → **Incident Report** (may need parent communication)
+- Minor behavioral issues forming pattern → **Incident Report** (track pattern)
+- Parent expressing repeated concerns → **Incident Report** (document all parent contacts)
 
 **Response:**
 - Campus Director manages with PD support
-- Email to alerts@ to create case
-- Incident Report may be required
+- **File Incident Report** (required for all YELLOW)
+- Email alerts@ to create case and notify HQ
 - HQ monitors and provides guidance
 - Regular check-ins established
 - May require parent communication
 
-### RED Cases (Escalated/Crisis)
+### 🔴 RED Cases (Crisis/Escalated)
 
-**Management:** Managed by HQ escalated/crisis team and supported by field staff/campus
+**Who Manages:** HQ crisis team + field staff support
 
-**Characteristics:**
-- Risk: Moderate-high
-- Duration: Acute or chronic
-- Intensity: Severe
-- Frequency: Daily
-- Severity: Moderate-high
+**Severity:** Moderate-high risk, severe intensity, acute or chronic
 
-**Examples:**
-- Medical emergency
-- Student dismissal
-- Sexual harassment/assault allegation
-- Student missing
-- Mental health crisis
-- Violence or threats
-- Significant safety concern
-- Natural disaster
-- Media attention
+**Report Type:**
+- 🚨 **Incident Report REQUIRED** (critical for all RED cases)
+- 📞 **CALL CD/PD IMMEDIATELY** before filing (or while filing)
+- ✅ **Also send alerts@ email** for immediate HQ awareness
+- 🆘 **Call 9-1-1** if life-threatening
+
+**EXAMPLES:**
+- Medical emergency → **CALL 9-1-1 + CD/PD, then Incident Report**
+- Student dismissal → **CALL PD immediately, then Incident Report**
+- Sexual harassment/assault allegation → **CALL CD/PD immediately, then Incident Report**
+- Student missing → **CALL CD/PD + 9-1-1, then Incident Report**
+- Mental health crisis → **CALL CD/PD, then Incident Report**
+- Violence or threats → **CALL 9-1-1 + CD/PD, then Incident Report**
+- Significant safety concern → **CALL CD/PD, then Incident Report**
+- Natural disaster → **Follow emergency protocol, then Incident Report**
+- Media attention → **CALL PD immediately, then Incident Report**
 
 **Response:**
-- Immediate escalation to PD
+- **Immediate escalation to PD** (call, don't just email)
 - PD escalates to VP/Executive Directors
 - HQ crisis team activated
 - Campus staff follows HQ directives
-- Detailed documentation required
-- Legal/insurance notified if appropriate
+- **Detailed Incident Report required immediately**
+- Legal/insurance notified if appropriate (within 48 hours)
 - Media response plan if needed
 
 ## Communication Pathways and Escalation
