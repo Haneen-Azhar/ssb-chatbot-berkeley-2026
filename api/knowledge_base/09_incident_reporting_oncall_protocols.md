@@ -1,5 +1,25 @@
 # Incident Reporting and On-Call Protocols - Summer Springboard 2026
 
+## 🚨 REPORTING QUICK REFERENCE
+
+**Need to report something? Start here:**
+
+| Report Type | When to Use | How to File |
+|-------------|-------------|-------------|
+| **alerts@ Email** | GREEN: Minor issues, FYI to HQ | Email: **alerts@summerspringboard.com** |
+| **Observation Report** | GREEN: Staff coaching (minor) | Staff Performance Tracker (ask PD for link) |
+| **Incident Report** | YELLOW/RED: Formal documentation | **Form:** https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform<br>**Email:** alerts@summerspringboard.com (subject: INCIDENT REPORT)<br>**Photo:** Text/email to your PD |
+
+**Key Contacts:**
+- 📞 **SSB 24/7 Helpline:** +1.858.779.0555
+- 📞 **Risk Management (Maria):** 347-210-4976
+- 📞 **Your Campus Director:** [in your phone contacts]
+- 📞 **Your Program Director:** [in your phone contacts]
+
+**Remember:** When in doubt, file an Incident Report. Better to over-document than under-document.
+
+---
+
 ## Duty of Care
 
 ### Definition
@@ -415,22 +435,57 @@ Parents/students contact admissions or on-call about:
 
 ## Reporting Systems: What to Use When
 
+### QUICK START: Which Report Do I Need?
+
+**START HERE → Ask these questions:**
+
+**Question 1: Is this about a STAFF MEMBER's performance?**
+- YES, and it's minor/coaching level → **Observation Report** (GREEN)
+- YES, and it's serious/repeated → **Incident Report** (YELLOW/RED)
+- NO, it's about a student → Go to Question 2
+
+**Question 2: How serious is the student situation?**
+- **GREEN (minor, handled on campus):** → **alerts@ email**
+  - Examples: Student late once, minor homesickness, parent called with question
+- **YELLOW (moderate, needs HQ support):** → **Incident Report + alerts@ email**
+  - Examples: Student to urgent care, behavior contract, parent concern pattern
+- **RED (serious/crisis):** → **CALL CD/PD IMMEDIATELY, then Incident Report**
+  - Examples: ER visit, code violation, sexual assault, student missing
+
+**Question 3: Could this have legal/liability implications?**
+- YES → **Incident Report** (always)
+- NO, just want HQ aware → **alerts@ email**
+
+**Still unsure?** → File an **Incident Report**. Better to over-document than under-document.
+
+---
+
 ### Three Types of Reporting at SSB
 
 **SSB uses three different reporting systems. Understanding when to use each is critical:**
 
-#### 1. alert@ Email (alerts@summerspringboard.com)
+#### 1. alerts@ Email (alerts@summerspringboard.com)
 
 **Purpose:** Notify HQ and create tracking case for situations that may need monitoring
 
+**HOW TO FILE:**
+1. Open your email
+2. Send email to: **alerts@summerspringboard.com**
+3. Subject line: Brief description of issue
+4. Email body: Include who, what, where, when
+5. Hit send - case is automatically created in Salesforce
+6. Watch for "handling" response from on-call staff
+7. If you're handling it, reply all with "handling" and remove alerts@ from the thread
+
 **When to use:**
+- **GREEN-level situations** (minor, being handled on campus)
 - Student behavioral patterns developing (late to class repeatedly)
 - Parent expressing concerns
 - Medical updates (student has cold, monitoring)
 - Flight changes or travel delays
 - Situations you want HQ aware of
 - Things that could potentially escalate
-- Green-level student issues (minor, being handled on campus)
+- Items needing tracking but not formal documentation
 
 **What happens:**
 - Email to alerts@ automatically creates Salesforce case
@@ -443,53 +498,118 @@ Parents/students contact admissions or on-call about:
 - "Parent of Sarah Jones called with question about laundry services. I explained process and parent satisfied."
 - "Flight for 3 students delayed 2 hours. All arrived safely at 11pm instead of 9pm."
 
-#### 2. Observation Report (Green Level - Staff Performance Only)
+**Link:** Just send email to alerts@summerspringboard.com - no form required
 
-**Purpose:** Document staff performance issues at coaching level
+#### 2. Observation Report (Staff Performance - GREEN Level Only)
+
+**Purpose:** Document staff performance issues at coaching level (not disciplinary)
+
+**HOW TO FILE:**
+1. Access Staff Performance Tracker in Salesforce or Google Drive (link provided by PD)
+2. Fill in:
+   - Staff member name
+   - Date and time
+   - What you observed (objective facts)
+   - Coaching conversation you had
+   - Follow-up needed
+3. Save to tracker
+4. Have coaching conversation with staff member
+5. No need to send to alerts@ unless pattern escalates
+
+**OR:**
+- Email summary to your Program Director
+- PD will add to Staff Performance Tracker
 
 **When to use:**
-- Staff member needs coaching or feedback
-- Minor performance issue that doesn't warrant formal warning
-- Developmental feedback for staff
-- Pattern you're monitoring in a staff member
+- **GREEN-level staff issues only** (coaching, not discipline)
+- Staff member needs feedback or coaching
+- Minor performance issue (first occurrence)
+- Developmental feedback
+- Pattern you're monitoring
+- Teachable moments
 
-**Who completes:** Campus Director for staff issues, Program Director for CD issues
+**Who completes:**
+- Campus Director for mentor/instructor/SPA issues
+- Program Director for CD issues
 
 **What happens:**
 - Goes into Staff Performance Tracker
 - Used for coaching conversation
-- Not a formal warning
+- NOT a formal warning
 - Helps track patterns over time
+- If pattern continues → escalates to Incident Report
 
 **Examples:**
-- "Mentor Alex was 10 minutes late to morning duty. Reminded about importance of punctuality."
-- "Instructor Jane's lesson plan was not submitted on time. Discussed time management strategies."
+- "Mentor Alex was 10 minutes late to morning duty. Reminded about importance of punctuality. He apologized and set alarm earlier."
+- "Instructor Jane's lesson plan was not submitted on time. Discussed time management strategies. She will use calendar reminders."
 
-**IMPORTANT:** Observation Reports are ONLY for staff performance issues, not for student incidents.
+**IMPORTANT:** Observation Reports are ONLY for staff performance issues, NOT for student incidents. Student issues go to alerts@ or Incident Report.
 
-#### 3. Incident Report (Formal Documentation)
+**Link:** Staff Performance Tracker (ask your PD for access link)
+
+#### 3. Incident Report (Formal Documentation - YELLOW/RED Level)
 
 **Purpose:** Formally document significant incidents requiring HQ involvement and legal/insurance protection
 
+**HOW TO FILE (choose one of these three methods):**
+
+**METHOD 1: Online Form (preferred)**
+1. Go to: https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform
+2. Fill out all fields:
+   - Your name and role
+   - Student(s) involved (full names)
+   - Date, time, location
+   - Detailed narrative (who, what, when, where, why, how)
+   - Witnesses
+   - Actions taken
+   - Parent notification status
+   - Follow-up needed
+3. Submit form
+4. Form automatically creates Salesforce case and notifies PD
+
+**METHOD 2: Email**
+1. Send email to: **alerts@summerspringboard.com**
+2. Subject: "INCIDENT REPORT: [brief description]"
+3. Include all required info (see "What Goes in an Incident Report" section below)
+4. Attach photos if relevant
+5. Mark as high priority if urgent
+
+**METHOD 3: Photo to PD**
+1. If you're in the field with limited internet, take photo of written incident report
+2. Text or email photo directly to your Program Director
+3. PD will enter into system
+4. Follow up with formal submission when you have internet
+
 **When to use:**
-- Yellow/Orange/Critical level situations (see below)
+- **YELLOW/RED level situations** (moderate to severe)
 - Anything requiring formal documentation
 - Situations with potential liability
-- Code of conduct violations
-- Medical visits (urgent care, ER, doctor)
-- Safety concerns
+- Code of conduct violations (any)
+- Medical visits: urgent care, ER, doctor
+- Safety concerns or near-misses
+- Staff policy violations (serious)
+- Parent complaints or dissatisfaction
+- Early departure requests
 - Anything you'd want documented if there's a lawsuit
+- **When in doubt, file it**
 
-**Who completes:** Any staff member involved in or witnessing incident
+**Who completes:**
+- Any staff member involved in or witnessing incident
+- Usually Campus Director completes or delegates
+- Staff who witnessed can also file directly
 
 **What happens:**
 - Creates Salesforce case requiring follow-up
-- Reviewed by Program Director
+- Reviewed by Program Director within 24 hours
 - May trigger parent communication
 - Becomes part of permanent record
 - Legal/insurance may review
+- PD follows up with CD for additional info
+- Case tracked until resolution
 
-**Timeline:** Must be completed within 24 hours
+**Timeline:** Must be completed within 24 hours of incident
+
+**CRITICAL:** If it's an emergency (life-threatening, student missing, sexual assault), CALL YOUR CD AND PD FIRST before filling out the report. Document after you've handled the emergency.
 
 ### Decision Tree: Which Reporting Method to Use
 
