@@ -25,6 +25,9 @@ function escapeHtml(text) {
 
 function renderMarkdown(text) {
   let html = escapeHtml(text);
+  html = html.replace(/^### (.+)$/gm, '<strong style="font-size:15px;display:block;margin:12px 0 4px">$1</strong>');
+  html = html.replace(/^## (.+)$/gm, '<strong style="font-size:16px;display:block;margin:14px 0 4px">$1</strong>');
+  html = html.replace(/^# (.+)$/gm, '<strong style="font-size:18px;display:block;margin:16px 0 6px">$1</strong>');
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(
@@ -35,6 +38,7 @@ function renderMarkdown(text) {
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
   );
+  html = html.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item">$1</div>');
   html = html.replace(/^- (.+)$/gm, '<div class="md-list-item">$1</div>');
   html = html.replace(
     /^&bull; (.+)$/gm,
