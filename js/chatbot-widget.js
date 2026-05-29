@@ -4,7 +4,10 @@
 
 class ChatbotWidget {
   constructor() {
-    this.apiUrl = '/api/chat/stream';
+    this.apiBase = window.location.hostname === 'localhost'
+      ? 'http://localhost:3001'
+      : '';
+    this.apiUrl = this.apiBase + '/api/chat/stream';
     this.messages = [];
     this.isTyping = false;
     this.chatHistory = [];
@@ -201,7 +204,7 @@ class ChatbotWidget {
 
   async fetchProfile() {
     try {
-      const response = await fetch('/api/chat/profile', {
+      const response = await fetch(this.apiBase + '/api/chat/profile', {
         headers: {
           'Authorization': 'Bearer ' + this.session.access_token
         }
@@ -372,6 +375,7 @@ class ChatbotWidget {
               <option value="SPA">SPA</option>
               <option value="Mentor">Mentor</option>
               <option value="Instructor">Instructor</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -407,7 +411,7 @@ class ChatbotWidget {
     submitBtn.textContent = 'Setting up...';
 
     try {
-      const response = await fetch('/api/chat/profile', {
+      const response = await fetch(this.apiBase + '/api/chat/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -514,6 +518,7 @@ What would you like to know?`,
             <option value="SPA" ${role === 'SPA' ? 'selected' : ''}>SPA</option>
             <option value="Mentor" ${role === 'Mentor' ? 'selected' : ''}>Mentor</option>
             <option value="Instructor" ${role === 'Instructor' ? 'selected' : ''}>Instructor</option>
+            <option value="Other" ${role === 'Other' ? 'selected' : ''}>Other</option>
           </select>
         </div>
 
@@ -559,7 +564,7 @@ What would you like to know?`,
       saveBtn.textContent = 'Saving...';
 
       try {
-        const response = await fetch('/api/chat/profile', {
+        const response = await fetch(this.apiBase + '/api/chat/profile', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

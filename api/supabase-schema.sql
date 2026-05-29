@@ -6,7 +6,7 @@ create table public.profiles (
   id uuid references auth.users on delete cascade primary key,
   email text not null,
   name text,
-  role text check (role in ('CD', 'AM', 'SPA', 'Mentor', 'Instructor')),
+  role text check (role in ('CD', 'AM', 'SPA', 'Mentor', 'Instructor', 'Other')),
   bot_name text default 'Summer',
   is_admin boolean default false,
   created_at timestamptz default now()
