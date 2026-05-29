@@ -8,11 +8,17 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
-  "keywords": ["chatbot", "anthropic", "claude", "summer-springboard"],
+  "keywords": [
+    "chatbot",
+    "anthropic",
+    "claude",
+    "summer-springboard"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
+    "@supabase/supabase-js": "^2.106.2",
     "axios": "^1.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",

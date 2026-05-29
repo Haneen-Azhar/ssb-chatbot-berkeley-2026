@@ -249,3 +249,31 @@ export const shouldTriggerSearch = (query) => {
   // 3. Mentions campus locations/events
   return searchTriggers.some(trigger => lowerQuery.includes(trigger));
 };
+
+const ROLE_CONTEXTS = {
+  'CD': (name) => `You're speaking with ${name}, a Campus Director, the senior on-site leader at Berkeley. Don't tell them to escalate to themselves. Guide them on delegating to AM/SPA, when to notify PD directly, managing their team's response. They make disciplinary decisions. Address them as a peer leader.`,
+  'AM': (name) => `You're speaking with ${name}, an Academic Manager, second-in-command to CD. They manage academic programming independently. Guide on when to loop in CD vs handle themselves, coordinating with instructors, academic scheduling.`,
+  'SPA': (name) => `You're speaking with ${name}, a Summer Program Assistant. They handle logistics, transport, on-the-ground operations. Guide on executing tasks from CD/AM, what to escalate, proper documentation.`,
+  'Mentor': (name) => `You're speaking with ${name}, a Resident Mentor, frontline staff living with students. Should escalate serious issues to CD. Guide on what they handle independently (minor conflicts, homesickness), when to escalate immediately, incident documentation.`,
+  'Instructor': (name) => `You're speaking with ${name}, an Instructor focused on academic delivery. Guide on classroom management, coordinating with AM, when to flag student concerns to mentors/CD.`,
+};
+
+export const buildRoleContext = (user) => {
+  if (!user) return '';
+
+  const name = user.name || 'staff member';
+  const botName = user.botName || 'Summer';
+  const { role } = user;
+
+  let context = `\n\nUSER PERSONALIZATION:\nYour name is ${botName}.`;
+
+  if (role && ROLE_CONTEXTS[role]) {
+    context += ` ${ROLE_CONTEXTS[role](name)}`;
+  } else {
+    context += ` You're speaking with ${name}.`;
+  }
+
+  context += ` Use their name naturally in conversation. Greet them warmly on first message.`;
+
+  return context;
+};

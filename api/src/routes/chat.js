@@ -1,76 +1,110 @@
 import express from 'express';
-import { getChatResponse, getChatResponseStream, extractSuggestedQuestions } from '../services/claude.js';
+import { getChatResponse, getChatResponseStream } from '../services/claude.js';
 import { searchKnowledgeBase, loadKnowledgeBase } from '../services/knowledgeBaseEnhanced.js';
 import { webSearch } from '../services/search.js';
-import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch } from '../utils/prompts.js';
+import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '../utils/prompts.js';
+import { optionalAuth } from '../middleware/auth.js';
+import { logQuery, getProfile, updateProfile } from '../services/database.js';
 
 const router = express.Router();
 
-// Load enhanced knowledge base on server start
 await loadKnowledgeBase();
 
+function buildSources(kbResults, searchResults) {
+  const sources = kbResults.map(result => ({
+    type: 'kb',
+    file: result.file,
+    header: result.header,
+    url: result.sourceUrl,
+    label: result.sourceLabel,
+    confidence: result.score > 5 ? 'high' : result.score > 2 ? 'medium' : 'low'
+  }));
+
+  if (searchResults) {
+    searchResults.forEach(result => {
+      sources.push({ type: 'web', title: result.title, url: result.url });
+    });
+  }
+
+  return sources;
+}
+
+// GET /api/chat/profile - Get current user's profile
+router.get('/profile', optionalAuth, async (req, res) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ success: false, error: 'Not authenticated' });
+  }
+  const profile = req.user.profile || await getProfile(req.user.id);
+  res.json({ success: true, profile });
+});
+
+// PUT /api/chat/profile - Update current user's profile
+router.put('/profile', optionalAuth, async (req, res) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ success: false, error: 'Not authenticated' });
+  }
+  const { name, role, bot_name } = req.body;
+  const updates = {};
+  if (name !== undefined) updates.name = name;
+  if (role !== undefined) updates.role = role;
+  if (bot_name !== undefined) updates.bot_name = bot_name;
+
+  const profile = await updateProfile(req.user.id, updates);
+  if (!profile) {
+    return res.status(500).json({ success: false, error: 'Failed to update profile' });
+  }
+  res.json({ success: true, profile });
+});
+
 // POST /api/chat - Main chat endpoint
-router.post('/', async (req, res) => {
+router.post('/', optionalAuth, async (req, res) => {
+  const startTime = Date.now();
   try {
-    const { message, history = [] } = req.body;
+    const { message, history = [], sessionId } = req.body;
 
     if (!message || typeof message !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'Message is required'
-      });
+      return res.status(400).json({ success: false, error: 'Message is required' });
     }
 
-    console.log(`💬 Query: "${message}"`);
-    console.log(`📝 History length: ${history.length} messages`);
+    const userName = req.user?.profile?.name || 'staff';
+    console.log(`💬 Query from ${userName}: "${message}"`);
 
-    // Step 1: Run KB search and web search in parallel
     const [kbResults, searchResults] = await Promise.all([
       Promise.resolve(searchKnowledgeBase(message)),
       shouldTriggerSearch(message) ? webSearch(message) : Promise.resolve(null)
     ]);
 
-    console.log(`📚 Found ${kbResults.length} relevant KB files`);
-    if (searchResults) {
-      console.log(`🔍 Found ${searchResults.length} web search results`);
-    }
-
-    // Step 2: Build prompt with context including conversation history
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
-
-    // Step 3: Get response from Claude
-    const claudeResponse = await getChatResponse(SYSTEM_PROMPT, userPrompt, history);
+    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(req.user?.profile);
+    const claudeResponse = await getChatResponse(systemPrompt, userPrompt, history);
 
     if (!claudeResponse.success) {
       throw new Error(claudeResponse.error);
     }
 
-    // Step 5: Extract sources from KB results with URLs and labels
-    const sources = kbResults.map(result => ({
-      type: 'kb',
-      file: result.file,
-      header: result.header,
-      url: result.sourceUrl,
-      label: result.sourceLabel,
-      confidence: result.score > 5 ? 'high' : result.score > 2 ? 'medium' : 'low'
-    }));
+    const sources = buildSources(kbResults, searchResults);
+    const responseTimeMs = Date.now() - startTime;
 
-    // Add search results as sources if used
-    if (searchResults) {
-      searchResults.forEach(result => {
-        sources.push({
-          type: 'web',
-          title: result.title,
-          url: result.url
-        });
-      });
+    // Log query async (don't await — never block the response)
+    if (req.user?.id) {
+      logQuery({
+        userId: req.user.id,
+        sessionId: sessionId || crypto.randomUUID(),
+        message,
+        response: claudeResponse.response,
+        sources,
+        kbResultsCount: kbResults.length,
+        searchUsed: searchResults !== null,
+        inputTokens: claudeResponse.usage?.inputTokens || 0,
+        outputTokens: claudeResponse.usage?.outputTokens || 0,
+        responseTimeMs
+      }).catch(err => console.error('Query log error:', err));
     }
 
-    // Step 6: Return response (removed suggested questions for speed)
     res.json({
       success: true,
       response: claudeResponse.response,
-      sources: sources,
+      sources,
       searchUsed: searchResults !== null,
       suggestions: [],
       usage: claudeResponse.usage,
@@ -88,83 +122,71 @@ router.post('/', async (req, res) => {
 });
 
 // POST /api/chat/stream - Streaming chat endpoint
-router.post('/stream', async (req, res) => {
+router.post('/stream', optionalAuth, async (req, res) => {
+  const startTime = Date.now();
   try {
-    const { message, history = [] } = req.body;
+    const { message, history = [], sessionId } = req.body;
 
     if (!message || typeof message !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'Message is required'
-      });
+      return res.status(400).json({ success: false, error: 'Message is required' });
     }
 
-    console.log(`💬 Streaming query: "${message}"`);
+    const userName = req.user?.profile?.name || 'staff';
+    console.log(`💬 Streaming query from ${userName}: "${message}"`);
 
-    // Set up SSE (Server-Sent Events)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // Step 1: Get KB and search results
     const [kbResults, searchResults] = await Promise.all([
       Promise.resolve(searchKnowledgeBase(message)),
       shouldTriggerSearch(message) ? webSearch(message) : Promise.resolve(null)
     ]);
 
-    console.log(`📚 Found ${kbResults.length} relevant KB files`);
-
-    // Send sources immediately
-    const sources = kbResults.map(result => ({
-      type: 'kb',
-      file: result.file,
-      header: result.header,
-      url: result.sourceUrl,
-      label: result.sourceLabel,
-      confidence: result.score > 5 ? 'high' : result.score > 2 ? 'medium' : 'low'
-    }));
-
-    if (searchResults) {
-      searchResults.forEach(result => {
-        sources.push({
-          type: 'web',
-          title: result.title,
-          url: result.url
-        });
-      });
-    }
-
+    const sources = buildSources(kbResults, searchResults);
     res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
 
-    // Step 2: Build prompt and stream response
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
-    const stream = await getChatResponseStream(SYSTEM_PROMPT, userPrompt, history);
+    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(req.user?.profile);
+    const stream = await getChatResponseStream(systemPrompt, userPrompt, history);
 
     let fullResponse = '';
     let usage = null;
 
-    // Stream text chunks as they arrive
     stream.on('text', (text) => {
       fullResponse += text;
       res.write(`data: ${JSON.stringify({ type: 'text', text })}\n\n`);
     });
 
-    // Send final metadata when done
-    stream.on('message', (message) => {
-      if (message.usage) {
+    stream.on('message', (msg) => {
+      if (msg.usage) {
         usage = {
-          inputTokens: message.usage.input_tokens,
-          outputTokens: message.usage.output_tokens
+          inputTokens: msg.usage.input_tokens,
+          outputTokens: msg.usage.output_tokens
         };
       }
     });
 
     stream.on('end', () => {
-      res.write(`data: ${JSON.stringify({
-        type: 'done',
-        usage,
-        timestamp: new Date().toISOString()
-      })}\n\n`);
+      const responseTimeMs = Date.now() - startTime;
+
+      // Log query async
+      if (req.user?.id) {
+        logQuery({
+          userId: req.user.id,
+          sessionId: sessionId || crypto.randomUUID(),
+          message,
+          response: fullResponse,
+          sources,
+          kbResultsCount: kbResults.length,
+          searchUsed: searchResults !== null,
+          inputTokens: usage?.inputTokens || 0,
+          outputTokens: usage?.outputTokens || 0,
+          responseTimeMs
+        }).catch(err => console.error('Query log error:', err));
+      }
+
+      res.write(`data: ${JSON.stringify({ type: 'done', usage, timestamp: new Date().toISOString() })}\n\n`);
       res.end();
     });
 
@@ -185,13 +207,10 @@ router.post('/stream', async (req, res) => {
 });
 
 // POST /api/chat/feedback - User feedback endpoint
-router.post('/feedback', async (req, res) => {
+router.post('/feedback', optionalAuth, async (req, res) => {
   try {
     const { messageId, helpful, comment } = req.body;
-
-    // Log feedback (in production, save to database)
-    console.log('📊 Feedback received:', { messageId, helpful, comment });
-
+    console.log('📊 Feedback received:', { messageId, helpful, comment, user: req.user?.profile?.name });
     res.json({ success: true });
   } catch (error) {
     console.error('Feedback error:', error);
