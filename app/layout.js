@@ -1,6 +1,5 @@
 import { Montserrat, Open_Sans } from 'next/font/google';
 import './globals.css';
-import ChatbotWidget from '@/components/ChatbotWidget';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -17,8 +16,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata = {
-  title: 'Berkeley B Summer Staff Portal',
-  description: 'Berkeley B Summer Staff Portal - Your central hub for schedules, resources, and course information.',
+  title: 'Summer - SSB Staff Assistant',
+  description: 'Summer is the AI staff assistant for Summer Springboard at UC Berkeley. Ask about schedules, emergency procedures, campus resources, and more.',
   icons: {
     icon: '/images/cal-bear-avatar.webp',
   },
@@ -35,7 +34,6 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
-        <ChatbotWidget />
       </body>
     </html>
   );

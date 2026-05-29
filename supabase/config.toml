@@ -1,6 +1,7 @@
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
+site_url = "https://ssb-chatbot-berkeley-2026.vercel.app"
+additional_redirect_urls = ["http://localhost:3000"]
 
 [auth.email]
 enable_signup = true
