@@ -11,3 +11,4 @@ npm-debug.log*
 .tmp/
 .vercel
 _archive/
+.next/
