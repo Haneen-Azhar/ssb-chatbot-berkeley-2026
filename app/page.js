@@ -139,6 +139,7 @@ export default function ChatApp() {
   // Install prompt
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [inAppBrowser, setInAppBrowser] = useState(false);
 
   // Settings
   const [showSettings, setShowSettings] = useState(false);
@@ -159,6 +160,15 @@ export default function ChatApp() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) return;
 
+    // Detect in-app browsers (WhatsApp, Instagram, Facebook, etc.)
+    const ua = navigator.userAgent;
+    const isInApp = /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line|Twitter|LinkedIn/i.test(ua);
+    if (isInApp) {
+      setInAppBrowser(true);
+      setShowInstallBanner(true);
+      return;
+    }
+
     const handler = (e) => {
       e.preventDefault();
       setInstallPrompt(e);
@@ -168,9 +178,8 @@ export default function ChatApp() {
     };
     window.addEventListener('beforeinstallprompt', handler);
 
-    // For Safari/iOS - show banner if not installed and not dismissed
-    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
     if ((isSafari || isIOS) && !localStorage.getItem('install-dismissed')) {
       setTimeout(() => setShowInstallBanner(true), 3000);
     }
@@ -891,35 +900,44 @@ export default function ChatApp() {
 
   const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 
+  const copyUrl = useCallback(() => {
+    navigator.clipboard?.writeText(window.location.origin);
+  }, []);
+
   return (
     <div className="chat-app">
-      {/* Install banner */}
+      {/* Install banner - at the TOP, non-invasive */}
       {showInstallBanner && (
         <div className="install-banner">
           <div className="install-banner-content">
-            <img src="/images/cal-bear-avatar.webp" alt="" className="install-banner-icon" />
-            <div className="install-banner-text">
-              {installPrompt ? (
-                <>
-                  <strong>Install Summer</strong>
-                  <span>Add to your home screen for quick access</span>
-                </>
-              ) : isIOS ? (
-                <>
-                  <strong>Add to Home Screen</strong>
-                  <span>Tap <strong>Share</strong> then <strong>&quot;Add to Home Screen&quot;</strong></span>
-                </>
-              ) : (
-                <>
-                  <strong>Add to Home Screen</strong>
-                  <span>Open browser menu and tap <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home Screen&quot;</strong></span>
-                </>
-              )}
-            </div>
-            {installPrompt ? (
-              <button className="install-banner-btn" onClick={handleInstall}>Install</button>
-            ) : null}
-            <button className="install-banner-dismiss" onClick={dismissInstall}>×</button>
+            {inAppBrowser ? (
+              <>
+                <div className="install-banner-text">
+                  <strong>Open in your browser to get the full experience</strong>
+                  <span>Copy the link below and paste it in <strong>Safari</strong> or <strong>Chrome</strong></span>
+                </div>
+                <button className="install-banner-btn" onClick={copyUrl}>Copy link</button>
+              </>
+            ) : installPrompt ? (
+              <>
+                <div className="install-banner-text">
+                  <strong>Use Summer like an app</strong>
+                  <span>Tap <strong>Install</strong> to add it to your home screen</span>
+                </div>
+                <button className="install-banner-btn" onClick={handleInstall}>Install</button>
+              </>
+            ) : isIOS ? (
+              <div className="install-banner-text">
+                <strong>Use Summer like an app</strong>
+                <span>Tap the <strong>Share</strong> button (the square with an arrow at the bottom) then scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></span>
+              </div>
+            ) : (
+              <div className="install-banner-text">
+                <strong>Use Summer like an app</strong>
+                <span>Tap the <strong>three dots ⋮</strong> in your browser, then tap <strong>&quot;Add to Home Screen&quot;</strong> or <strong>&quot;Install app&quot;</strong></span>
+              </div>
+            )}
+            <button className="install-banner-dismiss" onClick={dismissInstall} aria-label="Dismiss">×</button>
           </div>
         </div>
       )}
