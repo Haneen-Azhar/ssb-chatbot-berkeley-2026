@@ -593,11 +593,6 @@ function ChatAppInner() {
   );
 
   const startNewChat = useCallback(() => {
-    // Save current if it has user messages
-    if (activeConvoId && messages.some((m) => m.role === 'user')) {
-      saveCurrentConversation(messages);
-    }
-
     const newId = crypto.randomUUID();
     sessionIdRef.current = newId;
     setActiveConvoId(newId);
@@ -611,11 +606,6 @@ function ChatAppInner() {
 
   const loadConversation = useCallback(
     (convo) => {
-      // Save current first
-      if (activeConvoId && messages.some((m) => m.role === 'user')) {
-        saveCurrentConversation(messages);
-      }
-
       sessionIdRef.current = convo.id;
       setActiveConvoId(convo.id);
       setMessages(convo.messages || []);
@@ -627,7 +617,7 @@ function ChatAppInner() {
         setSidebarOpen(false);
       }
     },
-    [activeConvoId, messages, saveCurrentConversation]
+    []
   );
 
   const deleteConversation = useCallback(
