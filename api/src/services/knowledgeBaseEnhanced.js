@@ -13,7 +13,7 @@ let sourceMapping = {};
 
 // Portal and Manual URLs
 const PORTAL_BASE = 'https://sites.google.com/summerspringboard.com/berkeley-b-summer-staff-portal';
-const MANUAL_BASE = 'https://sites.google.com/terraeducation.com/ssbmanual2025/how-to-run-a-summer-program';
+const MANUAL_BASE = 'https://sites.google.com/terraeducation.com/ssbmanual2025';
 
 // Recursively find all .md files in directory
 async function findMdFiles(dir, baseDir = dir) {
@@ -160,300 +160,418 @@ async function loadSourceMapping() {
     // Comprehensive mapping based on actual KB file content and SOURCES_AND_LINKS.md
     sourceMapping = {
       '01_emergency_procedures.md': {
-        defaultUrl: `${PORTAL_BASE}/important-resources`,
+        defaultUrl: `${MANUAL_BASE}/risk-management/managing-crisis-events`,
         description: 'Emergency Procedures & Safety',
         topics: [
-          { keywords: ['emergency contact', 'phone number', 'ucpd', '9-1-1', 'helpline'], url: `${PORTAL_BASE}/important-resources`, label: 'Emergency Contacts' },
-          { keywords: ['earthquake', 'drop', 'cover', 'hold'], url: `${PORTAL_BASE}/important-resources`, label: 'Earthquake Procedures' },
-          { keywords: ['active shooter', 'run', 'hide', 'fight'], url: `${PORTAL_BASE}/important-resources`, label: 'Active Shooter Protocol' },
-          { keywords: ['fire', 'evacuation', 'assembly'], url: `${PORTAL_BASE}/important-resources`, label: 'Fire & Evacuation' },
-          { keywords: ['warnme', 'alert', 'notification'], url: `${PORTAL_BASE}/important-resources`, label: 'Campus Safety Systems' },
-          { keywords: ['mandated reporting', 'abuse', 'neglect'], url: `${PORTAL_BASE}/cd-am-spa-resources`, label: 'Mandated Reporting (Leadership Access)' }
+          { keywords: ['emergency contact', 'phone number', 'ucpd', '9-1-1', 'helpline'], url: `${PORTAL_BASE}/important-resources`, label: 'Staff Portal - Emergency Contacts' },
+          { keywords: ['earthquake', 'drop', 'cover', 'hold'], url: `${MANUAL_BASE}/risk-management/emergency-action-plans-program-risk-assessments`, label: 'SSB Manual - Emergency Action Plans' },
+          { keywords: ['active shooter', 'run', 'hide', 'fight'], url: `${MANUAL_BASE}/risk-management/managing-crisis-events`, label: 'SSB Manual - Managing Crisis Events' },
+          { keywords: ['fire', 'evacuation', 'assembly'], url: `${MANUAL_BASE}/risk-management/emergency-action-plans-program-risk-assessments`, label: 'SSB Manual - Emergency Action Plans' },
+          { keywords: ['warnme', 'alert', 'notification'], url: `${MANUAL_BASE}/risk-management/on-site-safety-briefings`, label: 'SSB Manual - Safety Briefings' },
+          { keywords: ['mandated reporting', 'abuse', 'neglect'], url: `${MANUAL_BASE}/ssb-policies/sexual-abuse-prevention-policy`, label: 'SSB Manual - Sexual Abuse Prevention Policy' }
         ]
       },
       '02_student_arrival_procedures.md': {
-        defaultUrl: `${PORTAL_BASE}/schedules-groups-lists`,
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures`,
         description: 'Student Arrival & Check-In',
         topics: [
-          { keywords: ['arrival', 'check-in', 'airport pickup', 'student arrival'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Arrival Day Schedule' },
-          { keywords: ['orientation', 'welcome'], url: MANUAL_BASE, label: 'SSB Manual - Student Orientation' },
-          { keywords: ['roommate', 'room condition'], url: `${PORTAL_BASE}/important-resources`, label: 'Forms & Documents' },
-          { keywords: ['reach app', 'technology'], url: `${PORTAL_BASE}/important-resources`, label: 'Technology Resources' }
+          { keywords: ['arrival', 'check-in', 'student arrival'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures`, label: 'SSB Manual - Check-In Procedures' },
+          { keywords: ['airport', 'pickup', 'flight'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures/airport-logistics`, label: 'SSB Manual - Airport Logistics' },
+          { keywords: ['orientation', 'welcome'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/running-orientation-sessions`, label: 'SSB Manual - Running Orientation' },
+          { keywords: ['roommate', 'room condition'], url: `${PORTAL_BASE}/important-resources`, label: 'Staff Portal - Forms & Documents' },
+          { keywords: ['reach app', 'technology'], url: `${PORTAL_BASE}/important-resources`, label: 'Staff Portal - Important Resources' }
         ]
       },
       '03_first_aid_medical.md': {
-        defaultUrl: `${PORTAL_BASE}/important-resources`,
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
         description: 'Healthcare & Medical Resources',
         topics: [
-          { keywords: ['hospital', 'urgent care', 'alta bates', 'medical center'], url: `${PORTAL_BASE}/important-resources`, label: 'Healthcare Options' },
-          { keywords: ['first aid', 'medical kit', 'supplies'], url: `${PORTAL_BASE}/important-resources`, label: 'Medical Supplies' },
-          { keywords: ['incident report', 'medical treatment', 'injury'], url: MANUAL_BASE, label: 'SSB Manual - Incident Reporting' },
-          { keywords: ['covid', 'quarantine', 'isolation'], url: MANUAL_BASE, label: 'SSB Manual - Health Protocols' },
-          { keywords: ['mental health', 'anxiety', 'depression'], url: MANUAL_BASE, label: 'SSB Manual - Mental Health Support' }
+          { keywords: ['hospital', 'urgent care', 'alta bates', 'medical center'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' },
+          { keywords: ['first aid', 'medical kit', 'supplies'], url: `${MANUAL_BASE}/risk-management/first-aid-kits`, label: 'SSB Manual - First Aid Kits' },
+          { keywords: ['incident report', 'medical treatment', 'injury'], url: `${MANUAL_BASE}/risk-management/incident-reporting`, label: 'SSB Manual - Incident Reporting' },
+          { keywords: ['covid', 'quarantine', 'isolation'], url: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`, label: 'SSB Manual - Physical Health Protocols' },
+          { keywords: ['mental health', 'anxiety', 'depression'], url: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`, label: 'SSB Manual - Mental Health Protocols' },
+          { keywords: ['medication', 'prescription', 'medicine'], url: `${MANUAL_BASE}/risk-management/medication-management`, label: 'SSB Manual - Medication Management' },
+          { keywords: ['insurance', 'travel assistance'], url: `${MANUAL_BASE}/risk-management/medical-insurance-travel-assistance`, label: 'SSB Manual - Medical Insurance' }
         ]
       },
       '04_staff_schedules_policies.md': {
         defaultUrl: `${PORTAL_BASE}/schedules-groups-lists`,
         description: 'Staff Schedules & Policies',
         topics: [
-          { keywords: ['staff schedule', 'duty schedule', 'mentor schedule'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Staff Schedules' },
-          { keywords: ['time off', 'personal time', 'break'], url: `${PORTAL_BASE}/cd-am-spa-resources`, label: 'Staff Policies (CD/AM/SPA Resources)' },
-          { keywords: ['on-call', 'evening duty', 'bed check'], url: MANUAL_BASE, label: 'SSB Manual - Daily Operations' },
-          { keywords: ['incident report', 'documentation', 'behavioral'], url: MANUAL_BASE, label: 'SSB Manual - Incident Reporting' },
-          { keywords: ['ratio', '10:1', 'supervision'], url: MANUAL_BASE, label: 'SSB Manual - Staffing Requirements' },
-          { keywords: ['code of conduct', 'professional'], url: `${PORTAL_BASE}/cd-am-spa-resources`, label: 'Staff Code of Conduct (CD/AM/SPA Resources)' }
+          { keywords: ['staff schedule', 'duty schedule', 'mentor schedule'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Staff Portal - Schedules & Lists' },
+          { keywords: ['time off', 'personal time', 'break'], url: `${MANUAL_BASE}/time-off-in-between-session`, label: 'SSB Manual - Time Off & Between Sessions' },
+          { keywords: ['on-call', 'evening duty', 'bed check'], url: `${MANUAL_BASE}/risk-management/on-call`, label: 'SSB Manual - On-Call Duties' },
+          { keywords: ['incident report', 'documentation', 'behavioral'], url: `${MANUAL_BASE}/risk-management/incident-reporting`, label: 'SSB Manual - Incident Reporting' },
+          { keywords: ['ratio', '10:1', 'supervision'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/campus-boundaries`, label: 'SSB Manual - Campus Boundaries & Supervision' },
+          { keywords: ['code of conduct', 'professional'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Code of Conduct' }
         ]
       },
       '05_instructors_courses.md': {
         defaultUrl: `${PORTAL_BASE}/course-specific-info`,
         description: 'Academic Courses & Instructors',
         topics: [
-          { keywords: ['instructor', 'teacher', 'course'], url: `${PORTAL_BASE}/course-specific-info`, label: 'Instructor Directory & Course Info' },
-          { keywords: ['classroom', 'building', 'location'], url: `${PORTAL_BASE}/course-specific-info`, label: 'Classroom Assignments' },
-          { keywords: ['schedule', 'roster', 'academic'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Master Schedule & Rosters' }
+          { keywords: ['instructor', 'teacher', 'course'], url: `${PORTAL_BASE}/course-specific-info`, label: 'Staff Portal - Course Info' },
+          { keywords: ['classroom', 'building', 'location'], url: `${PORTAL_BASE}/course-specific-info`, label: 'Staff Portal - Course Info' },
+          { keywords: ['schedule', 'roster', 'academic'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Staff Portal - Schedules & Lists' }
         ]
       },
       '06_program_overview.md': {
-        defaultUrl: `${PORTAL_BASE}/home`,
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program`,
         description: 'Program Overview',
         topics: [
-          { keywords: ['housing', 'dorm', 'residence hall', 'unit'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Housing Lists' },
-          { keywords: ['dining', 'meal', 'food'], url: `${PORTAL_BASE}/important-resources`, label: 'Dining Services' },
-          { keywords: ['excursion', 'trip', 'activity'], url: MANUAL_BASE, label: 'SSB Manual - Program Activities' },
-          { keywords: ['student list', 'roster', 'group'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Student Lists' }
+          { keywords: ['housing', 'dorm', 'residence hall', 'unit'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Staff Portal - Schedules & Lists' },
+          { keywords: ['dining', 'meal', 'food'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/typical-day-on-program`, label: 'SSB Manual - Typical Day on Program' },
+          { keywords: ['excursion', 'trip'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities/academic-and-weekend-excursions`, label: 'SSB Manual - Excursions' },
+          { keywords: ['student list', 'roster', 'group'], url: `${PORTAL_BASE}/schedules-groups-lists`, label: 'Staff Portal - Schedules & Lists' },
+          { keywords: ['activity', 'club', 'evening'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities/student-clubs-evening-activities`, label: 'SSB Manual - Clubs & Evening Activities' }
+        ]
+      },
+      '06_student_code_of_conduct.md': {
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/student-discipline`,
+        description: 'Student Code of Conduct',
+        topics: [
+          { keywords: ['dismissal', 'expulsion', 'zero tolerance'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' },
+          { keywords: ['code of conduct', 'behavior', 'rules', 'violation'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Enforcing Code of Conduct' },
+          { keywords: ['warning', 'consequence', 'escalating'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' },
+          { keywords: ['substance', 'alcohol', 'drug', 'vape'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' }
+        ]
+      },
+      '07_daily_schedule_operations.md': {
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/typical-day-on-program`,
+        description: 'Daily Schedule & Operations',
+        topics: [
+          { keywords: ['schedule', 'daily', 'routine', 'typical day'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/typical-day-on-program`, label: 'SSB Manual - Typical Day on Program' },
+          { keywords: ['activity', 'scheduling', 'managing'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/scheduling-managing-activities`, label: 'SSB Manual - Scheduling & Managing Activities' },
+          { keywords: ['classroom', 'expectations'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/classroom-expectations`, label: 'SSB Manual - Classroom Expectations' }
+        ]
+      },
+      '08_staff_roles_responsibilities.md': {
+        defaultUrl: `${MANUAL_BASE}/summer-on-campus-team`,
+        description: 'Staff Roles & Responsibilities',
+        topics: [
+          { keywords: ['campus director', 'cd role'], url: `${MANUAL_BASE}/summer-on-campus-team/campus-director`, label: 'SSB Manual - Campus Director' },
+          { keywords: ['academic manager', 'am role'], url: `${MANUAL_BASE}/summer-on-campus-team/academic-manager`, label: 'SSB Manual - Academic Manager' },
+          { keywords: ['spa', 'program assistant'], url: `${MANUAL_BASE}/summer-on-campus-team/summer-program-assistant`, label: 'SSB Manual - Summer Program Assistant' },
+          { keywords: ['mentor', 'resident mentor', 'alumni'], url: `${MANUAL_BASE}/summer-on-campus-team/resident-mentor-alumni-mentor`, label: 'SSB Manual - Resident & Alumni Mentor' },
+          { keywords: ['instructor', 'teaching assistant'], url: `${MANUAL_BASE}/summer-on-campus-team/instructor`, label: 'SSB Manual - Instructor' },
+          { keywords: ['program director', 'pd role'], url: `${MANUAL_BASE}/summer-on-campus-team/program-director`, label: 'SSB Manual - Program Director' }
+        ]
+      },
+      '09_check_in_check_out_procedures.md': {
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures`,
+        description: 'Check-In & Check-Out',
+        topics: [
+          { keywords: ['check-in', 'arrival', 'registration'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures`, label: 'SSB Manual - Check-In Procedures' },
+          { keywords: ['check-out', 'departure', 'leaving'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-out-procedures`, label: 'SSB Manual - Check-Out Procedures' },
+          { keywords: ['airport', 'flight', 'transport'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures/airport-logistics`, label: 'SSB Manual - Airport Logistics' },
+          { keywords: ['wrap up', 'session end', 'closing'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/wrapping-up-a-session`, label: 'SSB Manual - Wrapping Up a Session' }
+        ]
+      },
+      '09_incident_reporting_oncall_protocols.md': {
+        defaultUrl: `${MANUAL_BASE}/risk-management/incident-reporting`,
+        description: 'Incident Reporting & On-Call',
+        topics: [
+          { keywords: ['incident report', 'reporting', 'documentation', 'report form'], url: `${MANUAL_BASE}/risk-management/incident-reporting`, label: 'SSB Manual - Incident Reporting' },
+          { keywords: ['staff conduct', 'staff incident'], url: `${MANUAL_BASE}/risk-management/incident-reporting/staff-conduct-incident-report`, label: 'SSB Manual - Staff Conduct Reports' },
+          { keywords: ['on-call', 'overnight', 'emergency call'], url: `${MANUAL_BASE}/risk-management/on-call`, label: 'SSB Manual - On-Call Procedures' },
+          { keywords: ['crisis', 'managing crisis'], url: `${MANUAL_BASE}/risk-management/managing-crisis-events`, label: 'SSB Manual - Managing Crisis Events' }
+        ]
+      },
+      '10_meal_activity_logistics.md': {
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/scheduling-managing-activities`,
+        description: 'Meals & Activity Logistics',
+        topics: [
+          { keywords: ['meal', 'breakfast', 'lunch', 'dinner', 'dining', 'food'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/typical-day-on-program`, label: 'SSB Manual - Typical Day on Program' },
+          { keywords: ['excursion', 'field trip', 'off-campus'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities/academic-and-weekend-excursions`, label: 'SSB Manual - Excursions' },
+          { keywords: ['activity', 'scheduling', 'logistics'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/scheduling-managing-activities`, label: 'SSB Manual - Scheduling & Managing Activities' },
+          { keywords: ['allergy', 'dietary', 'restriction'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
+        ]
+      },
+      '10_medical_protocols_safety.md': {
+        defaultUrl: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`,
+        description: 'Medical Protocols & Safety',
+        topics: [
+          { keywords: ['physical health', 'medical protocol', 'health protocol'], url: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`, label: 'SSB Manual - Physical Health Protocols' },
+          { keywords: ['mental health', 'psychological'], url: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`, label: 'SSB Manual - Mental Health Protocols' },
+          { keywords: ['medication', 'prescription'], url: `${MANUAL_BASE}/risk-management/medication-management`, label: 'SSB Manual - Medication Management' },
+          { keywords: ['medical issue', 'student medical', 'poa'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues/plan-of-action-poa`, label: 'SSB Manual - Plan of Action (POA)' },
+          { keywords: ['safety', 'risk'], url: `${MANUAL_BASE}/risk-management`, label: 'SSB Manual - Risk Management' }
+        ]
+      },
+      '11_parent_communication_protocols.md': {
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Parent Communication',
+        topics: [
+          { keywords: ['parent', 'family', 'communication', 'call'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' },
+          { keywords: ['communication protocol', 'messaging'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/communication-protocols`, label: 'SSB Manual - Communication Protocols' },
+          { keywords: ['complaint', 'concern', 'upset'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
+        ]
+      },
+      '13_transportation_responsibilities.md': {
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures/airport-logistics`,
+        description: 'Transportation',
+        topics: [
+          { keywords: ['airport', 'flight', 'pickup', 'dropoff'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures/airport-logistics`, label: 'SSB Manual - Airport Logistics' },
+          { keywords: ['transport', 'bus', 'van', 'vehicle'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/check-in-procedures/airport-logistics`, label: 'SSB Manual - Airport Logistics' }
+        ]
+      },
+      '00_POLICY_EXTRACTION_SUMMARY.md': {
+        defaultUrl: `${MANUAL_BASE}/ssb-policies`,
+        description: 'Policy Summary',
+        topics: [
+          { keywords: ['policy', 'policies'], url: `${MANUAL_BASE}/ssb-policies`, label: 'SSB Manual - Policies' }
         ]
       },
       'SUMMER_SPRINGBOARD_MASTER_README.md': {
-        defaultUrl: MANUAL_BASE,
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program`,
         description: 'SSB Complete Manual',
         topics: [
-          { keywords: ['incident report', 'reporting', 'documentation'], url: MANUAL_BASE, label: 'SSB Manual - Incident Reporting' },
-          { keywords: ['policy', 'code of conduct', 'staff conduct'], url: MANUAL_BASE, label: 'SSB Manual - Policies' },
-          { keywords: ['role', 'cd', 'am', 'spa', 'pd', 'campus director'], url: MANUAL_BASE, label: 'SSB Manual - Staff Roles' },
-          { keywords: ['mental health', 'parent communication'], url: MANUAL_BASE, label: 'SSB Manual - Mental Health & Parent Communication' },
-          { keywords: ['risk management', 'safety'], url: MANUAL_BASE, label: 'SSB Manual - Risk Management' }
+          { keywords: ['incident report', 'reporting', 'documentation'], url: `${MANUAL_BASE}/risk-management/incident-reporting`, label: 'SSB Manual - Incident Reporting' },
+          { keywords: ['policy', 'code of conduct', 'staff conduct'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Code of Conduct' },
+          { keywords: ['role', 'cd', 'am', 'spa', 'pd', 'campus director'], url: `${MANUAL_BASE}/summer-on-campus-team`, label: 'SSB Manual - Staff Roles' },
+          { keywords: ['mental health', 'parent communication'], url: `${MANUAL_BASE}/risk-management/mental-health-spotlight-protocol`, label: 'SSB Manual - Mental Health Protocol' },
+          { keywords: ['risk management', 'safety'], url: `${MANUAL_BASE}/risk-management`, label: 'SSB Manual - Risk Management' }
+        ]
+      },
+      'DIRECTOR_TRAINING_EXTRACTION_SUMMARY.md': {
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/pre-program-training`,
+        description: 'Director Training',
+        topics: [
+          { keywords: ['training', 'director', 'pre-program'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/pre-program-training`, label: 'SSB Manual - Pre-Program Training' }
+        ]
+      },
+      'QUICK_REFERENCE.md': {
+        defaultUrl: `${MANUAL_BASE}/cheat-sheetindex`,
+        description: 'Quick Reference',
+        topics: [
+          { keywords: ['quick reference', 'cheat sheet', 'index'], url: `${MANUAL_BASE}/cheat-sheetindex`, label: 'SSB Manual - Cheat Sheet / Index' }
         ]
       },
       // Medical Scenarios
       'scenarios/medical/anaphylaxis.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
+        description: 'Anaphylaxis Protocol',
         topics: [
-          { keywords: ['anaphylaxis', 'allergic', 'epipen', 'epinephrine'], url: MANUAL_BASE, label: 'SSB Manual - Anaphylaxis Protocol' }
+          { keywords: ['anaphylaxis', 'allergic', 'epipen', 'epinephrine'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
         ]
       },
       'scenarios/medical/diabetes-emergency.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
+        description: 'Diabetes Emergency',
         topics: [
-          { keywords: ['diabetes', 'glucose', 'insulin', 'hypoglycemia'], url: MANUAL_BASE, label: 'SSB Manual - Diabetes Emergency' }
+          { keywords: ['diabetes', 'glucose', 'insulin', 'hypoglycemia'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
         ]
       },
       'scenarios/medical/seizure.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
+        description: 'Seizure Protocol',
         topics: [
-          { keywords: ['seizure', 'epilepsy', 'convulsion'], url: MANUAL_BASE, label: 'SSB Manual - Seizure Protocol' }
+          { keywords: ['seizure', 'epilepsy', 'convulsion'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
         ]
       },
       'scenarios/medical/asthma-attack.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
+        description: 'Asthma Emergency',
         topics: [
-          { keywords: ['asthma', 'inhaler', 'breathing', 'wheezing'], url: MANUAL_BASE, label: 'SSB Manual - Asthma Emergency' }
+          { keywords: ['asthma', 'inhaler', 'breathing', 'wheezing'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
         ]
       },
       'scenarios/medical/concussion.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`,
+        description: 'Concussion Protocol',
         topics: [
-          { keywords: ['concussion', 'head injury', 'traumatic brain'], url: MANUAL_BASE, label: 'SSB Manual - Concussion Protocol' }
+          { keywords: ['concussion', 'head injury', 'traumatic brain'], url: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`, label: 'SSB Manual - Physical Health Protocols' }
         ]
       },
       'scenarios/medical/heat-illness.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Medical Emergencies',
+        defaultUrl: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`,
+        description: 'Heat Illness',
         topics: [
-          { keywords: ['heat', 'heatstroke', 'heat exhaustion', 'dehydration'], url: MANUAL_BASE, label: 'SSB Manual - Heat Illness' }
+          { keywords: ['heat', 'heatstroke', 'heat exhaustion', 'dehydration'], url: `${MANUAL_BASE}/risk-management/field-operations-physical-health-protocols`, label: 'SSB Manual - Physical Health Protocols' }
         ]
       },
       'scenarios/medical/cuts-and-bleeding.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - First Aid',
+        defaultUrl: `${MANUAL_BASE}/risk-management/first-aid-kits`,
+        description: 'First Aid - Bleeding',
         topics: [
-          { keywords: ['cut', 'bleeding', 'wound', 'laceration'], url: MANUAL_BASE, label: 'SSB Manual - Bleeding & Wounds' }
+          { keywords: ['cut', 'bleeding', 'wound', 'laceration'], url: `${MANUAL_BASE}/risk-management/first-aid-kits`, label: 'SSB Manual - First Aid' }
         ]
       },
       'scenarios/medical/broken-bones-sprains.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - First Aid',
+        defaultUrl: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`,
+        description: 'First Aid - Fractures',
         topics: [
-          { keywords: ['fracture', 'broken bone', 'sprain', 'rice'], url: MANUAL_BASE, label: 'SSB Manual - Fractures & Sprains' }
+          { keywords: ['fracture', 'broken bone', 'sprain', 'rice'], url: `${MANUAL_BASE}/risk-management/handling-student-medical-issues`, label: 'SSB Manual - Handling Medical Issues' }
         ]
       },
       'scenarios/medical/minor-emergencies.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - First Aid',
+        defaultUrl: `${MANUAL_BASE}/risk-management/first-aid-kits`,
+        description: 'Minor Medical Issues',
         topics: [
-          { keywords: ['nosebleed', 'blister', 'headache', 'minor'], url: MANUAL_BASE, label: 'SSB Manual - Minor Medical Issues' }
+          { keywords: ['nosebleed', 'blister', 'headache', 'minor'], url: `${MANUAL_BASE}/risk-management/first-aid-kits`, label: 'SSB Manual - First Aid' }
         ]
       },
       // Behavioral Scenarios
       'scenarios/behavioral/physical-fighting.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/student-discipline`,
+        description: 'Fighting & Violence',
         topics: [
-          { keywords: ['fight', 'fighting', 'physical', 'violence'], url: MANUAL_BASE, label: 'SSB Manual - Fighting & Violence' }
+          { keywords: ['fight', 'fighting', 'physical', 'violence'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' }
         ]
       },
       'scenarios/behavioral/bullying-harassment.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`,
+        description: 'Bullying & Harassment',
         topics: [
-          { keywords: ['bullying', 'harassment', 'cyberbullying'], url: MANUAL_BASE, label: 'SSB Manual - Bullying & Harassment' }
+          { keywords: ['bullying', 'harassment', 'cyberbullying'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Enforcing Code of Conduct' }
         ]
       },
       'scenarios/behavioral/substance-violations.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/student-discipline`,
+        description: 'Substance Violations',
         topics: [
-          { keywords: ['alcohol', 'vape', 'drug', 'substance'], url: MANUAL_BASE, label: 'SSB Manual - Substance Violations' }
+          { keywords: ['alcohol', 'vape', 'drug', 'substance'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' }
         ]
       },
       'scenarios/behavioral/sexual-harassment.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/sexual-abuse-prevention-policy`,
+        description: 'Sexual Harassment',
         topics: [
-          { keywords: ['sexual', 'title ix', 'consent'], url: MANUAL_BASE, label: 'SSB Manual - Sexual Harassment' }
+          { keywords: ['sexual', 'title ix', 'consent'], url: `${MANUAL_BASE}/ssb-policies/sexual-abuse-prevention-policy`, label: 'SSB Manual - Sexual Abuse Prevention' }
         ]
       },
       'scenarios/behavioral/curfew-room-violations.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`,
+        description: 'Curfew & Room Violations',
         topics: [
-          { keywords: ['curfew', 'room violation', 'bed check'], url: MANUAL_BASE, label: 'SSB Manual - Curfew & Room Violations' }
+          { keywords: ['curfew', 'room violation', 'bed check'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Enforcing Code of Conduct' }
         ]
       },
       'scenarios/behavioral/technology-violations.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Code of Conduct',
+        defaultUrl: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`,
+        description: 'Technology Violations',
         topics: [
-          { keywords: ['phone', 'recording', 'technology', 'device'], url: MANUAL_BASE, label: 'SSB Manual - Technology Violations' }
+          { keywords: ['phone', 'recording', 'technology', 'device'], url: `${MANUAL_BASE}/ssb-policies/enforcing-the-code-of-conduct-managing-student-behavior`, label: 'SSB Manual - Enforcing Code of Conduct' }
         ]
       },
       // Mental Health Scenarios
       'scenarios/mental_health/suicidal_ideation.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Mental Health',
+        defaultUrl: `${MANUAL_BASE}/risk-management/mental-health-spotlight-protocol`,
+        description: 'Suicidal Ideation',
         topics: [
-          { keywords: ['suicide', 'suicidal', 'self-harm', 'crisis'], url: MANUAL_BASE, label: 'SSB Manual - Suicidal Ideation' }
+          { keywords: ['suicide', 'suicidal', 'self-harm', 'crisis'], url: `${MANUAL_BASE}/risk-management/mental-health-spotlight-protocol`, label: 'SSB Manual - Mental Health Protocol' },
+          { keywords: ['debrief', 'critical incident'], url: `${MANUAL_BASE}/risk-management/special-topics-in-adolescent-mental-health/debriefing-critical-incidents`, label: 'SSB Manual - Debriefing Critical Incidents' }
         ]
       },
       'scenarios/mental_health/panic_attack.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Mental Health',
+        defaultUrl: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`,
+        description: 'Panic Attacks',
         topics: [
-          { keywords: ['panic', 'anxiety', 'attack'], url: MANUAL_BASE, label: 'SSB Manual - Panic Attacks' }
+          { keywords: ['panic', 'anxiety', 'attack'], url: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`, label: 'SSB Manual - Mental Health Response' }
         ]
       },
       'scenarios/mental_health/homesickness.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Mental Health',
+        defaultUrl: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`,
+        description: 'Homesickness',
         topics: [
-          { keywords: ['homesick', 'homesickness', 'wants to leave'], url: MANUAL_BASE, label: 'SSB Manual - Homesickness' }
+          { keywords: ['homesick', 'homesickness', 'wants to leave'], url: `${MANUAL_BASE}/risk-management/field-operations-mental-health-response-protocols`, label: 'SSB Manual - Mental Health Response' }
         ]
       },
       // Parent Issues
       'scenarios/parent_issues/angry_parent_demanding_answers.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Difficult Parent Calls',
         topics: [
-          { keywords: ['angry parent', 'upset parent', 'demanding'], url: MANUAL_BASE, label: 'SSB Manual - Difficult Parent Calls' }
+          { keywords: ['angry parent', 'upset parent', 'demanding'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
         ]
       },
       'scenarios/parent_issues/parent_threatens_legal_action.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Legal Threats',
         topics: [
-          { keywords: ['legal', 'lawsuit', 'attorney', 'lawyer'], url: MANUAL_BASE, label: 'SSB Manual - Legal Threats' }
+          { keywords: ['legal', 'lawsuit', 'attorney', 'lawyer'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
         ]
       },
       'scenarios/parent_issues/student_wants_to_leave_homesick.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Student Withdrawal',
         topics: [
-          { keywords: ['wants to leave', 'go home', 'withdrawal'], url: MANUAL_BASE, label: 'SSB Manual - Student Withdrawal' }
+          { keywords: ['wants to leave', 'go home', 'withdrawal'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
         ]
       },
       'scenarios/parent_issues/parent_reports_staff_misconduct.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Staff Management',
+        defaultUrl: `${MANUAL_BASE}/risk-management/incident-reporting/staff-conduct-incident-report`,
+        description: 'Staff Misconduct Reports',
         topics: [
-          { keywords: ['misconduct', 'staff complaint', 'inappropriate'], url: MANUAL_BASE, label: 'SSB Manual - Staff Misconduct' }
+          { keywords: ['misconduct', 'staff complaint', 'inappropriate'], url: `${MANUAL_BASE}/risk-management/incident-reporting/staff-conduct-incident-report`, label: 'SSB Manual - Staff Conduct Reports' }
         ]
       },
       'scenarios/parent_issues/parent_child_doesnt_feel_safe.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Safety Concerns',
         topics: [
-          { keywords: ['doesnt feel safe', 'safety concern', 'threatened'], url: MANUAL_BASE, label: 'SSB Manual - Safety Concerns' }
+          { keywords: ['doesnt feel safe', 'safety concern', 'threatened'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
         ]
       },
       'scenarios/parent_issues/parent_questions_discipline.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Discipline Questions',
         topics: [
-          { keywords: ['discipline', 'punishment', 'unfair'], url: MANUAL_BASE, label: 'SSB Manual - Discipline Questions' }
+          { keywords: ['discipline', 'punishment', 'unfair'], url: `${MANUAL_BASE}/ssb-policies/student-discipline`, label: 'SSB Manual - Student Discipline' }
         ]
       },
       'scenarios/parent_issues/parent_demands_refund.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Parent Communication',
+        defaultUrl: `${MANUAL_BASE}/parent-management`,
+        description: 'Refund Requests',
         topics: [
-          { keywords: ['refund', 'money back', 'tuition'], url: MANUAL_BASE, label: 'SSB Manual - Refund Requests' }
+          { keywords: ['refund', 'money back', 'tuition'], url: `${MANUAL_BASE}/parent-management`, label: 'SSB Manual - Parent Management' }
         ]
       },
       // Training Resources
       'training/mentorship_best_practices.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Mentorship',
+        defaultUrl: `${MANUAL_BASE}/summer-on-campus-team/resident-mentor-alumni-mentor`,
+        description: 'Mentorship Best Practices',
         topics: [
-          { keywords: ['mentorship', 'mentor', 'best practices'], url: MANUAL_BASE, label: 'SSB Manual - Mentorship Best Practices' }
+          { keywords: ['mentorship', 'mentor', 'best practices'], url: `${MANUAL_BASE}/summer-on-campus-team/resident-mentor-alumni-mentor`, label: 'SSB Manual - Mentor Role' }
         ]
       },
       'training/deescalation_techniques.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - De-escalation',
+        defaultUrl: `${MANUAL_BASE}/conflict-management`,
+        description: 'De-escalation Techniques',
         topics: [
-          { keywords: ['deescalation', 'calm down', 'conflict'], url: MANUAL_BASE, label: 'SSB Manual - De-escalation Techniques' }
+          { keywords: ['deescalation', 'calm down', 'conflict'], url: `${MANUAL_BASE}/conflict-management`, label: 'SSB Manual - Conflict Management' }
         ]
       },
       'training/difficult_conversations.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Communication',
+        defaultUrl: `${MANUAL_BASE}/conflict-management`,
+        description: 'Difficult Conversations',
         topics: [
-          { keywords: ['difficult conversation', 'warning', 'dismissal'], url: MANUAL_BASE, label: 'SSB Manual - Difficult Conversations' }
+          { keywords: ['difficult conversation', 'warning', 'dismissal'], url: `${MANUAL_BASE}/conflict-management`, label: 'SSB Manual - Conflict Management' }
         ]
       },
       'training/student_engagement.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Student Engagement',
+        defaultUrl: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities`,
+        description: 'Student Engagement',
         topics: [
-          { keywords: ['engagement', 'activities', 'true you'], url: MANUAL_BASE, label: 'SSB Manual - Student Engagement' }
+          { keywords: ['engagement', 'activities'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities`, label: 'SSB Manual - Program Activities' },
+          { keywords: ['true you'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities/true-you`, label: 'SSB Manual - True You' },
+          { keywords: ['ice breaker', 'icebreaker'], url: `${MANUAL_BASE}/how-to-run-a-summer-program/program-activities/ice-breakers`, label: 'SSB Manual - Ice Breakers' }
         ]
       },
       'training/professional_boundaries.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Professional Standards',
+        defaultUrl: `${MANUAL_BASE}/staff-onboarding`,
+        description: 'Professional Boundaries',
         topics: [
-          { keywords: ['boundaries', 'professional', 'ethics'], url: MANUAL_BASE, label: 'SSB Manual - Professional Boundaries' }
+          { keywords: ['boundaries', 'professional', 'ethics'], url: `${MANUAL_BASE}/staff-onboarding`, label: 'SSB Manual - Staff Onboarding' },
+          { keywords: ['sexual abuse', 'prevention'], url: `${MANUAL_BASE}/ssb-policies/sexual-abuse-prevention-policy`, label: 'SSB Manual - Abuse Prevention Policy' }
         ]
       },
       'training/staff_wellness.md': {
-        defaultUrl: MANUAL_BASE,
-        description: 'SSB Manual - Staff Wellness',
+        defaultUrl: `${MANUAL_BASE}/risk-management/special-topics-in-adolescent-mental-health/emotional-self-care-advice-for-ssb-staff`,
+        description: 'Staff Wellness',
         topics: [
-          { keywords: ['wellness', 'burnout', 'self-care'], url: MANUAL_BASE, label: 'SSB Manual - Staff Wellness' }
+          { keywords: ['wellness', 'burnout', 'self-care'], url: `${MANUAL_BASE}/risk-management/special-topics-in-adolescent-mental-health/emotional-self-care-advice-for-ssb-staff`, label: 'SSB Manual - Staff Self-Care' }
         ]
       }
     };
