@@ -6,10 +6,13 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import styles from './admin.module.css';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+let supabase = null;
+if (typeof window !== 'undefined') {
+  supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
 
 // ---- Role badge config ----
 const ROLE_STYLES = {
