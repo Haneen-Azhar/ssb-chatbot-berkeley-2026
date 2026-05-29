@@ -4,8 +4,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Path from team B bot/backend/src/services/ to knowledge_base/
-const KB_PATH = path.join(__dirname, '../../../../knowledge_base');
+const KB_PATH = path.join(__dirname, '../../knowledge_base');
 
 // Cache for knowledge base files
 let kbCache = {};
