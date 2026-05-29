@@ -102,7 +102,7 @@ When staff ask about handling student behavior, medical issues, safety concerns,
 **Step 3: Delegate & Document**
 - **Notify CD or PD immediately** for urgent/emergency incidents
 - **Fill out Incident Report** via:
-  - Online form: https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform
+  - Online form: [SSB Incident Report Form](https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform)
   - Email: alerts@summerspringboard.com
   - Photo to PD
 - **Call parents** if incident involves injury, Code of Conduct violation, or behavioral concern
