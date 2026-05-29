@@ -15,6 +15,14 @@ const openSans = Open_Sans({
   display: 'swap',
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
+
 export const metadata = {
   title: 'Summer - SSB Staff Assistant',
   description: 'Summer is the AI staff assistant for Summer Springboard at UC Berkeley. Ask about schedules, emergency procedures, campus resources, and more.',
