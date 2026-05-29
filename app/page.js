@@ -157,34 +157,36 @@ export default function ChatApp() {
 
   // ─── PWA install prompt ─────────────────────────────────
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) return;
+    try {
+      const isStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator?.standalone;
+      if (isStandalone) return;
+      if (localStorage.getItem('install-dismissed')) return;
 
-    // Detect in-app browsers (WhatsApp, Instagram, Facebook, etc.)
-    const ua = navigator.userAgent;
-    const isInApp = /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line|Twitter|LinkedIn/i.test(ua);
-    if (isInApp) {
-      setInAppBrowser(true);
-      setShowInstallBanner(true);
-      return;
-    }
-
-    const handler = (e) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-      if (!localStorage.getItem('install-dismissed')) {
+      const ua = navigator.userAgent || '';
+      const isInApp = /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line|Twitter|LinkedIn/i.test(ua);
+      if (isInApp) {
+        setInAppBrowser(true);
         setShowInstallBanner(true);
+        return;
       }
-    };
-    window.addEventListener('beforeinstallprompt', handler);
 
-    const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
-    const isIOS = /iPhone|iPad|iPod/.test(ua);
-    if ((isSafari || isIOS) && !localStorage.getItem('install-dismissed')) {
-      setTimeout(() => setShowInstallBanner(true), 3000);
+      const handler = (e) => {
+        e.preventDefault();
+        setInstallPrompt(e);
+        setShowInstallBanner(true);
+      };
+      window.addEventListener('beforeinstallprompt', handler);
+
+      const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+      const isIOS = /iPhone|iPad|iPod/.test(ua);
+      if (isSafari || isIOS) {
+        setTimeout(() => setShowInstallBanner(true), 5000);
+      }
+
+      return () => window.removeEventListener('beforeinstallprompt', handler);
+    } catch (e) {
+      // Never crash the app over install prompts
     }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   // ─── Init sessionId and load conversations ─────────────
@@ -901,7 +903,20 @@ export default function ChatApp() {
   const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 
   const copyUrl = useCallback(() => {
-    navigator.clipboard?.writeText(window.location.origin);
+    try {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(window.location.origin);
+      } else {
+        const input = document.createElement('input');
+        input.value = window.location.origin;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+    } catch (e) {
+      // Silently fail
+    }
   }, []);
 
   return (
