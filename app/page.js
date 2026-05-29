@@ -1184,9 +1184,9 @@ function ChatAppInner() {
                   alt={botName}
                   className="welcome-bear"
                 />
-                <h2 className="welcome-title">How can I help you today?</h2>
+                <h2 className="welcome-title">Heyo, I&apos;m {escapeHtml(botName)}</h2>
                 <p className="welcome-subtitle">
-                  I&apos;m {escapeHtml(botName)}, your SSB staff assistant. Ask me about schedules, emergency procedures, campus resources, and more.
+                  Your SSB staff assistant.
                 </p>
                 <div className="suggested-questions">
                   {SUGGESTED_QUESTIONS.map((q, i) => (
