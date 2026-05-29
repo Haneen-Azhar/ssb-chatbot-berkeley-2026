@@ -75,21 +75,28 @@ const SUGGESTED_QUESTIONS = [
   'What are the important campus phone numbers?',
 ];
 
-// ─── LocalStorage helpers for conversation history ───────
-function loadConversations() {
+// ─── Conversation helpers ────────────────────────────────
+async function fetchConversationsFromServer(accessToken) {
   try {
-    const raw = localStorage.getItem('ssb-conversations');
-    return raw ? JSON.parse(raw) : [];
+    const res = await fetch('/api/chat/conversations', {
+      headers: { Authorization: 'Bearer ' + accessToken },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.conversations || [];
   } catch {
     return [];
   }
 }
 
-function saveConversations(convos) {
+async function deleteConversationFromServer(sessionId, accessToken) {
   try {
-    localStorage.setItem('ssb-conversations', JSON.stringify(convos));
+    await fetch('/api/chat/conversations?session_id=' + sessionId, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + accessToken },
+    });
   } catch {
-    // storage full or unavailable
+    // silent
   }
 }
 
@@ -267,10 +274,9 @@ function ChatAppInner() {
   // (reserved for hook order)
   useEffect(() => {}, []);
 
-  // ─── Init sessionId and load conversations ─────────────
+  // ─── Init sessionId ────────────────────────────────────
   useEffect(() => {
     sessionIdRef.current = crypto.randomUUID();
-    setConversations(loadConversations());
     if (window.innerWidth > 768) {
       setSidebarOpen(true);
     }
@@ -298,6 +304,9 @@ function ChatAppInner() {
           }
           setView('onboarding');
         } else {
+          // Load conversations from server
+          const convos = await fetchConversationsFromServer(sess.access_token);
+          setConversations(convos);
           setView('chat');
         }
       } else if (response.status === 404) {
@@ -479,6 +488,10 @@ function ChatAppInner() {
 
     setMessages([]);
     setChatHistory([]);
+    if (session) {
+      const convos = await fetchConversationsFromServer(session.access_token);
+      setConversations(convos);
+    }
     setView('chat');
     setOnboardSubmitting(false);
   }, [onboardName, onboardRole, onboardBotName, session]);
@@ -572,7 +585,7 @@ function ChatAppInner() {
             updatedAt: new Date().toISOString(),
           });
         }
-        saveConversations(updated);
+        // Persisted via Supabase query logging
         return updated;
       });
     },
@@ -620,11 +633,10 @@ function ChatAppInner() {
   const deleteConversation = useCallback(
     (convoId, e) => {
       e.stopPropagation();
-      setConversations((prev) => {
-        const updated = prev.filter((c) => c.id !== convoId);
-        saveConversations(updated);
-        return updated;
-      });
+      setConversations((prev) => prev.filter((c) => c.id !== convoId));
+      if (session) {
+        deleteConversationFromServer(convoId, session.access_token);
+      }
       if (activeConvoId === convoId) {
         setMessages([]);
         setChatHistory([]);
@@ -770,7 +782,7 @@ function ChatAppInner() {
                   ...prevConvos,
                 ];
               }
-              saveConversations(updated);
+              // Persisted via Supabase query logging
               return updated;
             });
           }, 100);
