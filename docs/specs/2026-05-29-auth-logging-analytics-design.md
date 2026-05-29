@@ -15,6 +15,7 @@ Extends Supabase Auth users with app-specific data.
 | email | text | from auth |
 | name | text | set during onboarding |
 | role | text | CD, AM, SPA, Mentor, Instructor |
+| bot_name | text | user's custom name for the bot, default "Summer" |
 | is_admin | boolean | default false |
 | created_at | timestamptz | |
 
@@ -46,15 +47,22 @@ Every chat interaction.
 - Supabase Auth configured to allow signup only from `@summerspringboard.com` emails
 - Admins can generate invite links that bypass the domain restriction (for instructors with university emails, contractors, etc.)
 
+### Login methods
+- **Google Sign-In (primary)** — one-click, uses their Google account. Login screen shows a note: "Use your @summerspringboard.com Google account to sign in." Supabase validates the email domain after Google auth completes.
+- **Magic link (fallback)** — enter email, receive a login link. For staff who prefer not to use Google or have non-Google email setups.
+- Invited users (non-SSB emails) can use either method.
+
 ### User journey
-1. Visit chatbot → see login screen (no chatbot visible until authed)
-2. "Sign up" → enter @summerspringboard.com email → receive magic link or set password
-3. First login → onboarding modal: enter name, pick role from dropdown
-4. Subsequent visits → auto-logged in via Supabase session (persisted in localStorage)
-5. Chat widget shows user's name, role badge
+1. Visit chatbot → see login screen with "Sign in with Google" button + magic link option + note about using @summerspringboard.com email
+2. First login → onboarding modal: enter your name, pick your role (CD, AM, SPA, Mentor, Instructor), optionally name your bot (defaults to "Summer")
+3. Subsequent visits → auto-logged in via Supabase session (persisted in localStorage)
+4. Chat widget header shows user's name and role badge. Bot greets them by name using their chosen bot name.
+5. User can update name, role, and bot name from a settings icon in the chat widget
 
 ### Auth implementation
-- Supabase JS client handles login/signup/session in the browser
+- Supabase JS client handles Google OAuth + magic link in the browser
+- Google OAuth configured in Supabase dashboard (requires Google Cloud OAuth credentials)
+- After Google auth, a database trigger checks email domain and rejects non-allowed domains (unless invited)
 - Every API request includes the Supabase access token in Authorization header
 - API middleware validates the JWT and attaches user profile to the request
 - No custom auth server needed — Supabase handles it all client-side
@@ -62,12 +70,18 @@ Every chat interaction.
 ## Role-Aware Responses
 
 ### How it works
-The user's role and name are injected into the system prompt as additional context. The role context is appended after the existing SYSTEM_PROMPT.
+The user's role, name, and bot name are injected into the system prompt as additional context, appended after the existing SYSTEM_PROMPT. The bot adopts the user's chosen bot name as its own identity.
+
+### Bot personalization
+Each user can name their bot (default: "Summer"). The bot's self-introduction and personality adapt:
+- System prompt includes: "Your name is {bot_name}. You are speaking with {name}, a {role}."
+- The bot refers to itself by its custom name when relevant
+- The greeting message uses the bot name: "{bot_name} here — what do you need help with, {name}?"
 
 ### Role contexts
 
 **CD (Campus Director):**
-"You're speaking with {name}, a Campus Director — the senior on-site leader at Berkeley. Don't tell them to escalate to themselves. Guide them on: delegating to AM/SPA, when to notify PD directly, how to manage their team's response. They make disciplinary decisions."
+"You're speaking with {name}, a Campus Director — the senior on-site leader at Berkeley. Don't tell them to escalate to themselves. Guide them on: delegating to AM/SPA, when to notify PD directly, how to manage their team's response. They make disciplinary decisions. Address them as a peer leader, not a subordinate."
 
 **AM (Academic Manager):**
 "You're speaking with {name}, an Academic Manager — second-in-command to the CD. They manage academic programming and can handle most issues independently. Guide them on: when to loop in CD vs handle themselves, coordinating with instructors, academic scheduling decisions."
@@ -82,7 +96,7 @@ The user's role and name are injected into the system prompt as additional conte
 "You're speaking with {name}, an Instructor. They focus on academic delivery. Guide them on: classroom management, coordinating with AM for scheduling, when to flag student concerns to mentors/CD."
 
 ### Prompt injection
-In `prompts.js`, add a function `buildRoleContext(user)` that returns the role string. This gets appended to the system prompt before sending to Claude.
+In `prompts.js`, add a function `buildRoleContext(user)` that returns the full personalization string (bot name + role context + name). This gets appended to the system prompt before sending to Claude.
 
 ## Admin Dashboard
 
@@ -148,6 +162,7 @@ All admin endpoints check `is_admin` on the requesting user.
 ## Setup Steps (one-time)
 1. Create Supabase project
 2. Run SQL to create tables + RLS policies
-3. Configure auth: enable magic link, restrict to @summerspringboard.com
-4. Add env vars to Vercel
-5. Set initial admin user (Haneen's account)
+3. Configure auth: enable Google OAuth + magic link, restrict to @summerspringboard.com
+4. Set up Google Cloud OAuth credentials (client ID + secret) for Google Sign-In
+5. Add env vars to Vercel
+6. Set initial admin user (Haneen's account)
