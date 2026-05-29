@@ -246,9 +246,9 @@ function ChatAppInner() {
   const [conversations, setConversations] = useState([]);
   const [activeConvoId, setActiveConvoId] = useState(null);
 
-  // Install prompt
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  // (reserved for hook order)
+  const [_ip] = useState(null);
+  const [_sib] = useState(false);
 
   // Settings
   const [showSettings, setShowSettings] = useState(false);
@@ -264,33 +264,8 @@ function ChatAppInner() {
   const inputRef = useRef(null);
   const sessionIdRef = useRef(null);
 
-  // ─── PWA install prompt ─────────────────────────────────
-  useEffect(() => {
-    try {
-      const isStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator?.standalone;
-      if (isStandalone) return;
-      if (localStorage.getItem('install-dismissed')) return;
-
-      const ua = navigator.userAgent || '';
-
-      const handler = (e) => {
-        e.preventDefault();
-        setInstallPrompt(e);
-        setShowInstallBanner(true);
-      };
-      window.addEventListener('beforeinstallprompt', handler);
-
-      const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
-      const isIOS = /iPhone|iPad|iPod/.test(ua);
-      if (isSafari || isIOS) {
-        setTimeout(() => setShowInstallBanner(true), 5000);
-      }
-
-      return () => window.removeEventListener('beforeinstallprompt', handler);
-    } catch (e) {
-      // Never crash the app over install prompts
-    }
-  }, []);
+  // (reserved for hook order)
+  useEffect(() => {}, []);
 
   // ─── Init sessionId and load conversations ─────────────
   useEffect(() => {
@@ -346,6 +321,11 @@ function ChatAppInner() {
   }, []);
 
   useEffect(() => {
+    if (!supabase) {
+      setView('login');
+      return;
+    }
+
     let ignore = false;
 
     async function checkAuth() {
@@ -379,6 +359,7 @@ function ChatAppInner() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      if (ignore) return;
       if (event === 'SIGNED_IN' && sess) {
         setSession(sess);
         await fetchProfile(sess);
@@ -390,6 +371,7 @@ function ChatAppInner() {
     });
 
     return () => {
+      ignore = true;
       ignore = true;
       subscription.unsubscribe();
     };
@@ -426,6 +408,7 @@ function ChatAppInner() {
 
   // ─── Login handlers ───────────────────────────────────
   const handleGoogleSignIn = useCallback(async () => {
+    if (!supabase) return;
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -445,6 +428,7 @@ function ChatAppInner() {
     setMagicStatus({ text: '', type: '' });
 
     try {
+      if (!supabase) { setMagicStatus({ text: 'Service unavailable. Try again.', type: 'error' }); setMagicSending(false); return; }
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) {
         setMagicStatus({ text: error.message, type: 'error' });
@@ -553,7 +537,7 @@ function ChatAppInner() {
   }, [settingsName, settingsRole, settingsBotName, session, closeSettings]);
 
   const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     setSession(null);
     setUserProfile(null);
     setShowSettings(false);
@@ -562,19 +546,9 @@ function ChatAppInner() {
     setView('login');
   }, []);
 
-  const handleInstall = useCallback(async () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      await installPrompt.userChoice;
-      setInstallPrompt(null);
-      setShowInstallBanner(false);
-    }
-  }, [installPrompt]);
-
-  const dismissInstall = useCallback(() => {
-    setShowInstallBanner(false);
-    localStorage.setItem('install-dismissed', 'true');
-  }, []);
+  // (reserved for hook order)
+  const _hi = useCallback(() => {}, []);
+  const _di = useCallback(() => {}, []);
 
   // ─── Conversation management ──────────────────────────
   const saveCurrentConversation = useCallback(
@@ -1003,41 +977,8 @@ function ChatAppInner() {
   // ─── Render: Chat Interface ───────────────────────────
   const hasMessages = messages.length > 0;
 
-  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
-
-  const _unused = useCallback(() => {
-  }, []);
-
   return (
     <div className="chat-app">
-      {/* Install banner - at the TOP, non-invasive */}
-      {showInstallBanner && (
-        <div className="install-banner">
-          <div className="install-banner-content">
-            {installPrompt ? (
-              <>
-                <div className="install-banner-text">
-                  <strong>Use Summer like an app</strong>
-                  <span>Tap <strong>Install</strong> to add it to your home screen</span>
-                </div>
-                <button className="install-banner-btn" onClick={handleInstall}>Install</button>
-              </>
-            ) : isIOS ? (
-              <div className="install-banner-text">
-                <strong>Use Summer like an app</strong>
-                <span>Tap the <strong>Share</strong> button (the square with an arrow at the bottom) then scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></span>
-              </div>
-            ) : (
-              <div className="install-banner-text">
-                <strong>Use Summer like an app</strong>
-                <span>Tap the <strong>three dots ⋮</strong> in your browser, then tap <strong>&quot;Add to Home Screen&quot;</strong> or <strong>&quot;Install app&quot;</strong></span>
-              </div>
-            )}
-            <button className="install-banner-dismiss" onClick={dismissInstall} aria-label="Dismiss">×</button>
-          </div>
-        </div>
-      )}
-
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
