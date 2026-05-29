@@ -1,0 +1,22 @@
+{
+  "name": "Summer - SSB Staff Assistant",
+  "short_name": "Summer",
+  "description": "AI assistant for Summer Springboard Berkeley 2026 staff",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#003262",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/cal-bear-avatar.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "/images/cal-bear-avatar.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}

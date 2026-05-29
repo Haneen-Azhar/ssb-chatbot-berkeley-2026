@@ -20,6 +20,16 @@ export const metadata = {
   description: 'Summer is the AI staff assistant for Summer Springboard at UC Berkeley. Ask about schedules, emergency procedures, campus resources, and more.',
   icons: {
     icon: '/images/cal-bear-avatar.webp',
+    apple: '/images/cal-bear-avatar.webp',
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Summer',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
   },
 };
 
