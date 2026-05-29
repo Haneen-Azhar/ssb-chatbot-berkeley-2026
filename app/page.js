@@ -3,13 +3,24 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// ─── Supabase client (browser only) ──────────────────────
+// ─── In-app browser detection (runs before anything else) ──
+function isInAppBrowser() {
+  if (typeof window === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line|Twitter|LinkedIn|MicroMessenger/i.test(ua);
+}
+
+// ─── Supabase client (browser only, skip for in-app browsers) ──
 let supabase = null;
-if (typeof window !== 'undefined') {
-  supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+if (typeof window !== 'undefined' && !isInAppBrowser()) {
+  try {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+  } catch (e) {
+    // Supabase init failed - app will show login screen
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -107,7 +118,106 @@ function groupConversationsByDate(convos) {
 }
 
 // ─── Main App Component ─────────────────────────────────
-export default function ChatApp() {
+// ─── In-app browser gate (no React state, no Supabase, can't crash) ──
+function InAppBrowserGate() {
+  const url = typeof window !== 'undefined' ? window.location.origin : '';
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+
+  const openInBrowser = () => {
+    try {
+      // On iOS, window.open with the URL can trigger Safari
+      // On Android, intent:// URL triggers Chrome
+      if (isIOS) {
+        // Can't programmatically open Safari from in-app browser, so just show instructions
+      } else {
+        window.open(url, '_system');
+      }
+    } catch (e) { /* */ }
+  };
+
+  const copyLink = () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+    } catch (e) { /* */ }
+  };
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100vh', padding: '24px',
+      background: 'linear-gradient(135deg, #f0f4f8 0%, #e8eef5 50%, #f5f3f0 100%)',
+      fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+    }}>
+      <div style={{
+        background: 'white', borderRadius: '16px', padding: '40px 32px',
+        maxWidth: '400px', width: '100%', textAlign: 'center',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+      }}>
+        <img src="/images/cal-bear-avatar.webp" alt="Summer" style={{
+          width: '72px', height: '72px', borderRadius: '50%', marginBottom: '16px',
+        }} />
+        <h1 style={{ color: '#003262', fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
+          Open in your browser
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.5', margin: '0 0 24px' }}>
+          This app works best in {isIOS ? 'Safari' : 'Chrome'}. Copy the link below and open it in your browser.
+        </p>
+        <div style={{
+          background: '#f1f5f9', borderRadius: '10px', padding: '12px 16px',
+          fontSize: '13px', color: '#334155', marginBottom: '16px', wordBreak: 'break-all',
+        }}>
+          {url}
+        </div>
+        <button onClick={copyLink} style={{
+          width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
+          background: '#003262', color: 'white', fontSize: '16px', fontWeight: 700,
+          cursor: 'pointer', marginBottom: '12px',
+        }}>
+          Copy Link
+        </button>
+        {isIOS && (
+          <p style={{ color: '#94a3b8', fontSize: '12px', lineHeight: '1.5', margin: 0 }}>
+            Open <strong>Safari</strong>, tap the address bar, paste the link, and hit Go
+          </p>
+        )}
+        {!isIOS && (
+          <button onClick={openInBrowser} style={{
+            width: '100%', padding: '14px', borderRadius: '10px',
+            border: '1px solid #e2e8f0', background: 'white',
+            color: '#003262', fontSize: '16px', fontWeight: 600, cursor: 'pointer',
+          }}>
+            Try opening in Chrome
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function ChatAppWrapper() {
+  const [inApp, setInApp] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setInApp(isInAppBrowser());
+    setChecked(true);
+  }, []);
+
+  if (!checked) return null;
+  if (inApp) return <InAppBrowserGate />;
+  return <ChatAppInner />;
+}
+
+function ChatAppInner() {
   // Auth state
   const [session, setSession] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -139,7 +249,6 @@ export default function ChatApp() {
   // Install prompt
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [inAppBrowser, setInAppBrowser] = useState(false);
 
   // Settings
   const [showSettings, setShowSettings] = useState(false);
@@ -163,12 +272,6 @@ export default function ChatApp() {
       if (localStorage.getItem('install-dismissed')) return;
 
       const ua = navigator.userAgent || '';
-      const isInApp = /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line|Twitter|LinkedIn/i.test(ua);
-      if (isInApp) {
-        setInAppBrowser(true);
-        setShowInstallBanner(true);
-        return;
-      }
 
       const handler = (e) => {
         e.preventDefault();
@@ -902,21 +1005,7 @@ export default function ChatApp() {
 
   const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 
-  const copyUrl = useCallback(() => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(window.location.origin);
-      } else {
-        const input = document.createElement('input');
-        input.value = window.location.origin;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-      }
-    } catch (e) {
-      // Silently fail
-    }
+  const _unused = useCallback(() => {
   }, []);
 
   return (
@@ -925,15 +1014,7 @@ export default function ChatApp() {
       {showInstallBanner && (
         <div className="install-banner">
           <div className="install-banner-content">
-            {inAppBrowser ? (
-              <>
-                <div className="install-banner-text">
-                  <strong>Open in your browser to get the full experience</strong>
-                  <span>Copy the link below and paste it in <strong>Safari</strong> or <strong>Chrome</strong></span>
-                </div>
-                <button className="install-banner-btn" onClick={copyUrl}>Copy link</button>
-              </>
-            ) : installPrompt ? (
+            {installPrompt ? (
               <>
                 <div className="install-banner-text">
                   <strong>Use Summer like an app</strong>
