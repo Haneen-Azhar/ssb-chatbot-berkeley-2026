@@ -136,6 +136,10 @@ export default function ChatApp() {
   const [conversations, setConversations] = useState([]);
   const [activeConvoId, setActiveConvoId] = useState(null);
 
+  // Install prompt
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
   // Settings
   const [showSettings, setShowSettings] = useState(false);
   const [settingsName, setSettingsName] = useState('');
@@ -150,11 +154,34 @@ export default function ChatApp() {
   const inputRef = useRef(null);
   const sessionIdRef = useRef(null);
 
+  // ─── PWA install prompt ─────────────────────────────────
+  useEffect(() => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) return;
+
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      if (!localStorage.getItem('install-dismissed')) {
+        setShowInstallBanner(true);
+      }
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // For Safari/iOS - show banner if not installed and not dismissed
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if ((isSafari || isIOS) && !localStorage.getItem('install-dismissed')) {
+      setTimeout(() => setShowInstallBanner(true), 3000);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
   // ─── Init sessionId and load conversations ─────────────
   useEffect(() => {
     sessionIdRef.current = crypto.randomUUID();
     setConversations(loadConversations());
-    // Default sidebar open on desktop
     if (window.innerWidth > 768) {
       setSidebarOpen(true);
     }
@@ -419,6 +446,20 @@ export default function ChatApp() {
     setMessages([]);
     setChatHistory([]);
     setView('login');
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      setInstallPrompt(null);
+      setShowInstallBanner(false);
+    }
+  }, [installPrompt]);
+
+  const dismissInstall = useCallback(() => {
+    setShowInstallBanner(false);
+    localStorage.setItem('install-dismissed', 'true');
   }, []);
 
   // ─── Conversation management ──────────────────────────
@@ -848,8 +889,41 @@ export default function ChatApp() {
   // ─── Render: Chat Interface ───────────────────────────
   const hasMessages = messages.length > 0;
 
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
+
   return (
     <div className="chat-app">
+      {/* Install banner */}
+      {showInstallBanner && (
+        <div className="install-banner">
+          <div className="install-banner-content">
+            <img src="/images/cal-bear-avatar.webp" alt="" className="install-banner-icon" />
+            <div className="install-banner-text">
+              {installPrompt ? (
+                <>
+                  <strong>Install Summer</strong>
+                  <span>Add to your home screen for quick access</span>
+                </>
+              ) : isIOS ? (
+                <>
+                  <strong>Add to Home Screen</strong>
+                  <span>Tap <strong>Share</strong> then <strong>&quot;Add to Home Screen&quot;</strong></span>
+                </>
+              ) : (
+                <>
+                  <strong>Add to Home Screen</strong>
+                  <span>Open browser menu and tap <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home Screen&quot;</strong></span>
+                </>
+              )}
+            </div>
+            {installPrompt ? (
+              <button className="install-banner-btn" onClick={handleInstall}>Install</button>
+            ) : null}
+            <button className="install-banner-dismiss" onClick={dismissInstall}>×</button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -980,12 +1054,6 @@ export default function ChatApp() {
         </div>
 
         <div className="sidebar-bottom">
-          {userProfile?.is_admin && (
-            <a href="/admin" className="sidebar-admin-link">
-              <span className="material-icons" style={{ fontSize: '18px' }}>admin_panel_settings</span>
-              Admin Dashboard
-            </a>
-          )}
           <div className="sidebar-user">
             <div
               className="sidebar-user-avatar"
@@ -1016,6 +1084,11 @@ export default function ChatApp() {
             </button>
           </div>
           <button className="sidebar-signout" onClick={handleSignOut}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
             Sign out
           </button>
         </div>
