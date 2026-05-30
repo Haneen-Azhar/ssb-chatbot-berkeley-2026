@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
 // ─── In-app browser detection (runs before anything else) ──
@@ -1170,7 +1171,7 @@ function ChatAppInner() {
             <span className="chat-topbar-title">{escapeHtml(botName)}</span>
           </div>
           <div className="chat-topbar-right">
-            <a href="/campus-memory" className="campus-info-btn">
+            <Link href="/campus-memory" className="campus-info-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -1178,7 +1179,7 @@ function ChatAppInner() {
                 <line x1="9" y1="15" x2="15" y2="15" />
               </svg>
               Campus Info
-            </a>
+            </Link>
             <button className="topbar-settings-btn" onClick={openSettings} title="Settings">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3" />

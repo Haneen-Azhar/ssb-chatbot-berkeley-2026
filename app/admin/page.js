@@ -81,6 +81,9 @@ export default function AdminPage() {
   const [showEndSession, setShowEndSession] = useState(false);
   const [endSessionLabel, setEndSessionLabel] = useState('');
   const [endingSession, setEndingSession] = useState(false);
+  const [showRenameSession, setShowRenameSession] = useState(false);
+  const [renameLabel, setRenameLabel] = useState('');
+  const [renamingSaving, setRenamingSaving] = useState(false);
 
   // Expand state
   const [expandedUserId, setExpandedUserId] = useState(null);
@@ -291,6 +294,24 @@ export default function AdminPage() {
               End Session
             </button>
           )}
+          {activeSession && activeSession !== 'all' && (
+            <button
+              onClick={() => { setRenameLabel(activeSession); setShowRenameSession(true); }}
+              style={{
+                background: 'transparent',
+                color: '#FDB515',
+                border: '1px solid rgba(253,181,21,0.4)',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Rename
+            </button>
+          )}
           <span className={styles.userEmail}>{userEmail}</span>
           <Link href="/">Back to Portal</Link>
         </div>
@@ -438,6 +459,72 @@ export default function AdminPage() {
               >
                 {endingSession ? 'Archiving...' : 'Archive Session'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Session Modal */}
+      {showRenameSession && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          onClick={() => setShowRenameSession(false)}
+        >
+          <div
+            style={{ background: 'white', borderRadius: '14px', padding: '28px', maxWidth: '420px', width: '100%', margin: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a', marginBottom: '12px' }}>
+              Rename Session
+            </h3>
+            <input
+              type="text"
+              value={renameLabel}
+              onChange={(e) => setRenameLabel(e.target.value)}
+              placeholder="New session name"
+              style={{
+                width: '100%', padding: '10px 14px', border: '1px solid #e2e8f0',
+                borderRadius: '8px', fontSize: '15px', outline: 'none', marginBottom: '16px',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#003262'}
+              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowRenameSession(false)}
+                style={{
+                  padding: '8px 20px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                  background: 'white', color: '#374151', fontSize: '14px', fontWeight: 500, cursor: 'pointer',
+                }}
+              >Cancel</button>
+              <button
+                disabled={!renameLabel.trim() || renameLabel.trim() === activeSession || renamingSaving}
+                onClick={async () => {
+                  setRenamingSaving(true);
+                  try {
+                    await fetch('/api/admin/sessions', {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + accessToken,
+                      },
+                      body: JSON.stringify({ oldLabel: activeSession, newLabel: renameLabel.trim() }),
+                    });
+                    const newName = renameLabel.trim();
+                    setSessions((prev) => prev.map((s) => s === activeSession ? newName : s));
+                    setActiveSession(newName);
+                    setShowRenameSession(false);
+                  } catch (err) {
+                    console.error('Rename error:', err);
+                  }
+                  setRenamingSaving(false);
+                }}
+                style={{
+                  padding: '8px 20px', borderRadius: '8px', border: 'none',
+                  background: '#003262', color: 'white', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  opacity: (!renameLabel.trim() || renameLabel.trim() === activeSession || renamingSaving) ? 0.5 : 1,
+                }}
+              >{renamingSaving ? 'Saving...' : 'Rename'}</button>
             </div>
           </div>
         </div>

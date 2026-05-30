@@ -61,3 +61,29 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to end session' }, { status: 500 });
   }
 }
+
+// PUT: rename a session
+export async function PUT(request) {
+  const admin = await requireAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  try {
+    const { oldLabel, newLabel } = await request.json();
+    if (!oldLabel || !newLabel?.trim()) {
+      return NextResponse.json({ error: 'Both oldLabel and newLabel required' }, { status: 400 });
+    }
+
+    const supabase = createServerClient();
+    const { error } = await supabase
+      .from('queries')
+      .update({ session_label: newLabel.trim() })
+      .eq('session_label', oldLabel);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, oldLabel, newLabel: newLabel.trim() });
+  } catch (err) {
+    console.error('Rename session error:', err);
+    return NextResponse.json({ error: 'Failed to rename session' }, { status: 500 });
+  }
+}
