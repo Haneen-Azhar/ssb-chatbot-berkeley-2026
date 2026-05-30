@@ -27,6 +27,7 @@ vi.mock('@/lib/prompts', () => ({
 
 vi.mock('@/lib/database', () => ({
   logQuery: vi.fn().mockResolvedValue(undefined),
+  getCampusMemoryContext: vi.fn().mockResolvedValue(''),
 }));
 
 // ---- Imports (after mocks) ----

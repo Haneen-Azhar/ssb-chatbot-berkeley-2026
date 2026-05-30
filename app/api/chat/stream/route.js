@@ -3,7 +3,7 @@ import { getChatResponseStream } from '@/lib/claude';
 import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
 import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
-import { logQuery } from '@/lib/database';
+import { logQuery, getCampusMemoryContext } from '@/lib/database';
 
 let kbLoaded = false;
 
@@ -37,8 +37,9 @@ export async function POST(request) {
       useWebSearch ? webSearch(message) : Promise.resolve(null),
     ]);
 
-    // Build prompts
-    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile);
+    // Build prompts with campus memory context
+    const campusContext = await getCampusMemoryContext();
+    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
 
     // Build sources from KB results

@@ -607,16 +607,22 @@ input, select, textarea {
   width: 100%;
 }
 
-/* Mobile header (shown by default) */
-.chat-header-mobile {
+/* Top bar (always visible) */
+.chat-topbar {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  justify-content: space-between;
+  padding: 10px 16px;
   border-bottom: 1px solid #e5e7eb;
-  gap: 12px;
   background: white;
   flex-shrink: 0;
   min-height: 52px;
+}
+
+.chat-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .hamburger-btn {
@@ -625,18 +631,57 @@ input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-.chat-header-title {
-  flex: 1;
+.chat-topbar-title {
   font-family: var(--font-montserrat), 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 16px;
   color: #003262;
 }
 
-.new-chat-btn-mobile {
-  color: #374151;
-  padding: 4px;
+.chat-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campus-info-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #003262;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.campus-info-btn:hover {
+  background: #002147;
+  text-decoration: none;
+  color: white;
+}
+
+.topbar-settings-btn {
+  color: #6b7280;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-settings-btn:hover {
+  color: #003262;
+  background: #f3f4f6;
+}
+
+/* Hide old mobile header */
+.chat-header-mobile {
+  display: none !important;
 }
 
 /* Messages area */
@@ -1150,7 +1195,11 @@ input, select, textarea {
     display: none !important;
   }
 
-  .chat-header-mobile {
+  .hamburger-btn {
+    display: none;
+  }
+
+  .chat-topbar-title {
     display: none;
   }
 

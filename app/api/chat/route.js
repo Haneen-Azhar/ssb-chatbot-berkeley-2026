@@ -4,7 +4,7 @@ import { getChatResponse } from '@/lib/claude';
 import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
 import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
-import { logQuery } from '@/lib/database';
+import { logQuery, getCampusMemoryContext } from '@/lib/database';
 
 let kbLoaded = false;
 
@@ -38,10 +38,10 @@ export async function POST(request) {
       useWebSearch ? webSearch(message) : Promise.resolve(null),
     ]);
 
-    // Build system prompt with role context
-    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile);
+    // Build system prompt with role context and campus memory
+    const campusContext = await getCampusMemoryContext();
+    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
 
-    // Build user prompt with KB context and search results
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
 
     // Get Claude response
