@@ -124,6 +124,7 @@ describe('GET /api/admin/queries', () => {
       pageSize: 50,
       userId: undefined,
       role: undefined,
+      sessionFilter: null,
     });
   });
 
@@ -141,6 +142,7 @@ describe('GET /api/admin/queries', () => {
       pageSize: 10,
       userId: 'u-1',
       role: 'mentor',
+      sessionFilter: null,
     });
   });
 

@@ -340,8 +340,10 @@
 
 @media (max-width: 768px) {
   .adminHeader {
-    padding: 0 16px;
-    height: 56px;
+    padding: 12px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .adminHeader h1 {

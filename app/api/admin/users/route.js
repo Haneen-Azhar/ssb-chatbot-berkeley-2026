@@ -13,7 +13,9 @@ export async function GET(request) {
   }
 
   try {
-    const users = await getAdminUsers();
+    const { searchParams } = new URL(request.url);
+    const session = searchParams.get('session') || null;
+    const users = await getAdminUsers(session);
     return NextResponse.json(users);
   } catch (error) {
     console.error('Admin users error:', error);

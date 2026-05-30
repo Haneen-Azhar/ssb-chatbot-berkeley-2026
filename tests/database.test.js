@@ -8,6 +8,8 @@ const { mockSupabase, createMockQueryBuilder } = vi.hoisted(() => {
       eq: vi.fn().mockReturnThis(),
       gte: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue(resolvedValue),
@@ -240,8 +242,9 @@ describe('getAdminUsers', () => {
         // profiles select
         builder.select.mockResolvedValue({ data: profiles, error: null });
       } else {
-        // queries select
-        builder.select.mockResolvedValue({ data: queries, error: null });
+        // queries select - applySessionFilter chains .is() on the result
+        const isResult = { data: queries, error: null };
+        builder.select.mockReturnValue({ ...builder, is: vi.fn().mockResolvedValue(isResult) });
       }
       callCount++;
       return builder;
@@ -280,7 +283,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();
@@ -295,7 +298,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();
@@ -321,7 +324,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();
@@ -339,7 +342,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();
@@ -353,7 +356,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();
@@ -368,7 +371,7 @@ describe('getAdminTopics', () => {
     ];
 
     const builder = createMockQueryBuilder();
-    builder.not.mockResolvedValue({ data: queryData, error: null });
+    builder.not.mockReturnValue({ is: vi.fn().mockResolvedValue({ data: queryData, error: null }) });
     mockSupabase.from.mockReturnValue(builder);
 
     const result = await getAdminTopics();

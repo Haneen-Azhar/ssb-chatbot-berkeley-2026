@@ -357,6 +357,32 @@ export default function CampusMemoryPage() {
       </header>
 
       <main className={styles.main}>
+        {/* Hint banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, #003262 0%, #00507a 100%)',
+          borderRadius: '12px',
+          padding: '20px 24px',
+          marginBottom: '24px',
+          color: 'white',
+        }}>
+          <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '10px' }}>
+            Keep the chatbot up to date with
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {['Master schedule', 'Rooming lists', 'Mentor lists', 'Campus tracker', 'Airport schedule'].map((item) => (
+              <span key={item} style={{
+                padding: '5px 14px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                borderRadius: '100px',
+                fontSize: '13px',
+                color: 'white',
+                fontWeight: 500,
+                backdropFilter: 'blur(4px)',
+              }}>{item}</span>
+            ))}
+          </div>
+        </div>
+
         {/* Text Block Section */}
         <section className={styles.textBlockSection}>
           <h2 className={styles.sectionTitle}>General Campus Notes</h2>
@@ -420,33 +446,7 @@ export default function CampusMemoryPage() {
             </div>
           )}
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '10px',
-            marginTop: '14px',
-            padding: '12px 16px',
-            background: '#f8fafc',
-            borderRadius: '10px',
-            border: '1px solid #e2e8f0',
-          }}>
-            <span style={{ fontSize: '16px', lineHeight: '1.4' }}>&#128161;</span>
-            <div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-              <span style={{ fontWeight: 600, color: '#475569' }}>Keep the chatbot up to date with:</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                {['Master schedule', 'Rooming lists', 'Mentor lists', 'Campus tracker'].map((item) => (
-                  <span key={item} style={{
-                    padding: '3px 10px',
-                    background: '#e2e8f0',
-                    borderRadius: '100px',
-                    fontSize: '12px',
-                    color: '#334155',
-                    fontWeight: 500,
-                  }}>{item}</span>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* intentionally removed - hint moved to top */}
 
           {/* Upload preview */}
           {uploadFile && (

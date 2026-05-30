@@ -75,11 +75,28 @@ export default function AdminPage() {
   const [topics, setTopics] = useState(null);
   const [queries, setQueries] = useState(null);
 
+  // Session state
+  const [sessions, setSessions] = useState([]);
+  const [activeSession, setActiveSession] = useState(null);
+  const [showEndSession, setShowEndSession] = useState(false);
+  const [endSessionLabel, setEndSessionLabel] = useState('');
+  const [endingSession, setEndingSession] = useState(false);
+
   // Expand state
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [expandedUserQueries, setExpandedUserQueries] = useState(null);
   const [expandedUserLoading, setExpandedUserLoading] = useState(false);
   const [expandedQueryIndex, setExpandedQueryIndex] = useState(null);
+
+  // ---- URL helper: append session param ----
+  const withSession = useCallback(
+    (url, session) => {
+      if (session === null || session === undefined) return url;
+      const sep = url.includes('?') ? '&' : '?';
+      return url + sep + 'session=' + encodeURIComponent(session);
+    },
+    []
+  );
 
   // ---- Fetch helper ----
   const fetchWithAuth = useCallback(
@@ -127,6 +144,19 @@ export default function AdminPage() {
         const overviewData = await res.json();
         setOverview(overviewData);
         setAuthChecked(true);
+
+        // Fetch sessions list
+        try {
+          const sessionsRes = await fetch('/api/admin/sessions', {
+            headers: { Authorization: 'Bearer ' + token },
+          });
+          if (sessionsRes.ok) {
+            const sessionsData = await sessionsRes.json();
+            setSessions(Array.isArray(sessionsData) ? sessionsData : sessionsData?.sessions || []);
+          }
+        } catch {
+          // Sessions endpoint may not exist yet, fail silently
+        }
       } catch (err) {
         if (err.message === 'FORBIDDEN') {
           setAccessDenied(true);
@@ -139,15 +169,19 @@ export default function AdminPage() {
     init();
   }, [router]);
 
-  // ---- Load remaining data once auth is confirmed ----
+  // ---- Load remaining data once auth is confirmed (re-runs on session change) ----
   useEffect(() => {
     if (!authChecked || !accessToken) return;
 
     async function loadData() {
+      // Also re-fetch overview for the selected session
+      const overviewUrl = withSession('/api/admin', activeSession);
+      fetchWithAuth(overviewUrl).then(setOverview).catch(() => {});
+
       const [usersData, topicsData, queriesData] = await Promise.all([
-        fetchWithAuth('/api/admin/users').catch(() => []),
-        fetchWithAuth('/api/admin/topics').catch(() => []),
-        fetchWithAuth('/api/admin/queries?limit=50').catch(() => []),
+        fetchWithAuth(withSession('/api/admin/users', activeSession)).catch(() => []),
+        fetchWithAuth(withSession('/api/admin/topics', activeSession)).catch(() => []),
+        fetchWithAuth(withSession('/api/admin/queries?limit=50', activeSession)).catch(() => []),
       ]);
       setUsers(Array.isArray(usersData) ? usersData : usersData?.data || []);
       const topicsArr = Array.isArray(topicsData) ? topicsData : topicsData?.data || [];
@@ -155,7 +189,7 @@ export default function AdminPage() {
       setQueries(Array.isArray(queriesData) ? queriesData : queriesData?.data || []);
     }
     loadData();
-  }, [authChecked, accessToken, fetchWithAuth]);
+  }, [authChecked, accessToken, fetchWithAuth, activeSession, withSession]);
 
   // ---- Expand user row ----
   async function handleExpandUser(userId) {
@@ -170,7 +204,7 @@ export default function AdminPage() {
     setExpandedUserLoading(true);
 
     try {
-      const data = await fetchWithAuth('/api/admin/queries?user_id=' + userId);
+      const data = await fetchWithAuth(withSession('/api/admin/queries?user_id=' + userId, activeSession));
       setExpandedUserQueries(Array.isArray(data) ? data : data?.data || []);
     } catch {
       setExpandedUserQueries([]);
@@ -202,12 +236,212 @@ export default function AdminPage() {
   return (
     <div>
       <header className={styles.adminHeader}>
-        <h1>SSB Analytics Dashboard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <h1 style={{ margin: 0 }}>SSB Analytics Dashboard</h1>
+          <select
+            value={activeSession === null ? '' : activeSession}
+            onChange={(e) => {
+              const val = e.target.value;
+              setActiveSession(val === '' ? null : val);
+              // Reset expanded states on session change
+              setExpandedUserId(null);
+              setExpandedUserQueries(null);
+              setExpandedQueryIndex(null);
+              setAiAnalysis(null);
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.4)',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.825rem',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              outline: 'none',
+              minWidth: '180px',
+            }}
+          >
+            <option value="" style={{ color: '#333' }}>Current Session</option>
+            {sessions.map((label, i) => (
+              <option key={i} value={label} style={{ color: '#333' }}>{label}</option>
+            ))}
+            <option value="all" style={{ color: '#333' }}>All Sessions</option>
+          </select>
+        </div>
         <div className={styles.headerRight}>
+          {activeSession === null && (
+            <button
+              onClick={() => setShowEndSession(true)}
+              style={{
+                background: '#FDB515',
+                color: '#1a1a2e',
+                border: 'none',
+                padding: '7px 18px',
+                borderRadius: '6px',
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+            >
+              End Session
+            </button>
+          )}
           <span className={styles.userEmail}>{userEmail}</span>
           <Link href="/">Back to Portal</Link>
         </div>
       </header>
+
+      {/* End Session Modal */}
+      {showEndSession && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowEndSession(false);
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '14px',
+              padding: '32px',
+              maxWidth: '480px',
+              width: '90%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            }}
+          >
+            <h2 style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: '1.2rem',
+              fontWeight: 700,
+              color: '#003262',
+              marginTop: 0,
+              marginBottom: '12px',
+            }}>
+              Archive Current Session
+            </h2>
+            <p style={{
+              fontSize: '0.9rem',
+              color: '#5f6368',
+              lineHeight: 1.6,
+              marginBottom: '20px',
+            }}>
+              This will label all current queries as a past session. New queries will start fresh. User accounts and campus info are NOT affected.
+            </p>
+            <label style={{
+              display: 'block',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: '#333',
+              marginBottom: '6px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}>
+              Session name
+            </label>
+            <input
+              type="text"
+              value={endSessionLabel}
+              onChange={(e) => setEndSessionLabel(e.target.value)}
+              placeholder="Berkeley B Session 1 - June 2026"
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                fontSize: '0.9rem',
+                border: '1px solid #d0d4d8',
+                borderRadius: '8px',
+                outline: 'none',
+                marginBottom: '24px',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#003262'}
+              onBlur={(e) => e.target.style.borderColor = '#d0d4d8'}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowEndSession(false);
+                  setEndSessionLabel('');
+                }}
+                disabled={endingSession}
+                style={{
+                  background: '#e0e4e8',
+                  color: '#333',
+                  border: 'none',
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!endSessionLabel.trim()) return;
+                  setEndingSession(true);
+                  try {
+                    const res = await fetch('/api/admin/sessions', {
+                      method: 'POST',
+                      headers: {
+                        Authorization: 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ label: endSessionLabel.trim() }),
+                    });
+                    if (!res.ok) throw new Error('Archive failed');
+                    // Refresh sessions list
+                    const sessionsRes = await fetch('/api/admin/sessions', {
+                      headers: { Authorization: 'Bearer ' + accessToken },
+                    });
+                    if (sessionsRes.ok) {
+                      const sessionsData = await sessionsRes.json();
+                      setSessions(Array.isArray(sessionsData) ? sessionsData : sessionsData?.sessions || []);
+                    }
+                    // Reset to current session view
+                    setActiveSession(null);
+                    setShowEndSession(false);
+                    setEndSessionLabel('');
+                  } catch (err) {
+                    console.error('Archive session error:', err);
+                  } finally {
+                    setEndingSession(false);
+                  }
+                }}
+                disabled={endingSession || !endSessionLabel.trim()}
+                style={{
+                  background: endingSession || !endSessionLabel.trim() ? '#8aaccc' : '#003262',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: endingSession || !endSessionLabel.trim() ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >
+                {endingSession ? 'Archiving...' : 'Archive Session'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className={styles.adminMain}>
         {/* Overview cards */}
@@ -253,7 +487,7 @@ export default function AdminPage() {
                 setAiLoading(true);
                 setAiAnalysis(null);
                 try {
-                  const data = await fetchWithAuth('/api/admin/analyze');
+                  const data = await fetchWithAuth(withSession('/api/admin/analyze', activeSession));
                   setAiAnalysis(data);
                 } catch {
                   setAiAnalysis({ error: true });

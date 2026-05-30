@@ -13,7 +13,9 @@ export async function GET(request) {
   }
 
   try {
-    const topics = await getAdminTopics();
+    const { searchParams } = new URL(request.url);
+    const session = searchParams.get('session') || null;
+    const topics = await getAdminTopics(session);
     return NextResponse.json(topics);
   } catch (error) {
     console.error('Admin topics error:', error);

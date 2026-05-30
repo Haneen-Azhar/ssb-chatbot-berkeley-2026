@@ -19,7 +19,8 @@ export async function GET(request) {
     const user_id = searchParams.get('user_id') || undefined;
     const role = searchParams.get('role') || undefined;
 
-    const result = await getAdminQueries({ page, pageSize, userId: user_id, role });
+    const session = searchParams.get('session') || null;
+    const result = await getAdminQueries({ page, pageSize, userId: user_id, role, sessionFilter: session });
     return NextResponse.json(result);
   } catch (error) {
     console.error('Admin queries error:', error);
