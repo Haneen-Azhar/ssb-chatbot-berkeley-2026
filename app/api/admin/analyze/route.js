@@ -12,10 +12,13 @@ export async function GET(request) {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const session = searchParams.get('session') || null;
+
     const [queriesResult, users, topics] = await Promise.all([
-      getAdminQueries({ page: 1, pageSize: 200 }),
-      getAdminUsers(),
-      getAdminTopics(),
+      getAdminQueries({ page: 1, pageSize: 200, sessionFilter: session }),
+      getAdminUsers(session),
+      getAdminTopics(session),
     ]);
 
     const queries = queriesResult.data || [];

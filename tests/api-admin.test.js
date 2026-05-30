@@ -305,4 +305,49 @@ describe('GET /api/admin/analyze', () => {
     expect(data.overview).toContain('No queries to analyze yet');
     expect(data.staffInsights).toEqual([]);
   });
+
+  it('passes session filter to database functions', async () => {
+    requireAdmin.mockResolvedValue({ id: 'admin-1' });
+    getAdminQueries.mockResolvedValue({ data: [], count: 0 });
+    getAdminUsers.mockResolvedValue([]);
+    getAdminTopics.mockResolvedValue([]);
+
+    await analyzeGET(makeRequest('/api/admin/analyze', '?session=Session%201'));
+
+    expect(getAdminQueries).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionFilter: 'Session 1' })
+    );
+    expect(getAdminUsers).toHaveBeenCalledWith('Session 1');
+    expect(getAdminTopics).toHaveBeenCalledWith('Session 1');
+  });
+
+  it('passes all session filter to database functions', async () => {
+    requireAdmin.mockResolvedValue({ id: 'admin-1' });
+    getAdminQueries.mockResolvedValue({ data: [], count: 0 });
+    getAdminUsers.mockResolvedValue([]);
+    getAdminTopics.mockResolvedValue([]);
+
+    await analyzeGET(makeRequest('/api/admin/analyze', '?session=all'));
+
+    expect(getAdminQueries).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionFilter: 'all' })
+    );
+    expect(getAdminUsers).toHaveBeenCalledWith('all');
+    expect(getAdminTopics).toHaveBeenCalledWith('all');
+  });
+
+  it('defaults to current session when no session param', async () => {
+    requireAdmin.mockResolvedValue({ id: 'admin-1' });
+    getAdminQueries.mockResolvedValue({ data: [], count: 0 });
+    getAdminUsers.mockResolvedValue([]);
+    getAdminTopics.mockResolvedValue([]);
+
+    await analyzeGET(makeRequest('/api/admin/analyze'));
+
+    expect(getAdminQueries).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionFilter: null })
+    );
+    expect(getAdminUsers).toHaveBeenCalledWith(null);
+    expect(getAdminTopics).toHaveBeenCalledWith(null);
+  });
 });
