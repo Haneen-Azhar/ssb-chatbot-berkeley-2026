@@ -102,8 +102,11 @@ function renderMarkdownSafe(text) {
   // Newlines
   html = html.replace(/\n{2,}/g, '<span style="display:block;margin:6px 0"></span>');
   html = html.replace(/\n/g, '<br>');
+  html = html.replace(/<br>(<div class="md-list-item">)/g, '$1');
+  html = html.replace(/(<\/div>)<br>/g, '$1');
   return html;
 }
+
 
 function renderMarkdown(text) {
   let html = escapeHtml(text);
@@ -129,6 +132,9 @@ function renderMarkdown(text) {
   // Convert newlines: keep paragraph breaks but compact
   html = html.replace(/\n{2,}/g, '<span style="display:block;margin:6px 0"></span>');
   html = html.replace(/\n/g, '<br>');
+  // Clean up br before/after block elements (list items already have block display)
+  html = html.replace(/<br>(<div class="md-list-item">)/g, '$1');
+  html = html.replace(/(<\/div>)<br>/g, '$1');
   return html;
 }
 
