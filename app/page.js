@@ -99,7 +99,7 @@ function renderMarkdownSafe(text) {
   html = html.replace(/`([^`]*)$/g, '$1');
   html = html.replace(/\[([^\]]*)$/g, '$1');
   // Newlines
-  html = html.replace(/\n{2,}/g, '<div style="margin:10px 0"></div>');
+  html = html.replace(/\n{2,}/g, '<div style="margin:14px 0"></div>');
   html = html.replace(/\n/g, '<br>');
   return html;
 }
@@ -124,7 +124,7 @@ function renderMarkdown(text) {
   html = html.replace(/^\d+\.\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
   html = html.replace(/^[-•]\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
   // Convert newlines
-  html = html.replace(/\n{2,}/g, '<div style="margin:10px 0"></div>');
+  html = html.replace(/\n{2,}/g, '<div style="margin:14px 0"></div>');
   html = html.replace(/\n/g, '<br>');
   return html;
 }
