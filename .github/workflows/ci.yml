@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key-for-build
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for known vulnerabilities
+        run: npm audit --audit-level=high || true
+
+      - name: Check for secrets in code
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          # Check for real API keys (not placeholders like sk-ant-...)
+          if grep -rn "sk-ant-api03-[a-zA-Z0-9_-]\{20,\}" --include="*.js" --include="*.ts" --include="*.json" app/ lib/ components/ 2>/dev/null; then
+            echo "ERROR: Anthropic API key found in source code!"
+            exit 1
+          fi
+          # Check for real Supabase service keys (long JWTs with service_role)
+          if grep -rn "service_role.*eyJ[a-zA-Z0-9_-]\{100,\}" --include="*.js" --include="*.ts" app/ lib/ components/ 2>/dev/null; then
+            echo "ERROR: Supabase service key found in source code!"
+            exit 1
+          fi
+          # Check for .env files committed
+          if [ -f ".env" ] || [ -f ".env.local" ] || [ -f ".env.production" ]; then
+            echo "ERROR: .env file found in repository!"
+            exit 1
+          fi
+          echo "No secrets found in source code."
+
+      - name: Verify .gitignore has critical entries
+        run: |
+          for entry in ".env.local" ".env" "node_modules" ".next"; do
+            if ! grep -q "$entry" .gitignore; then
+              echo "ERROR: $entry missing from .gitignore!"
+              exit 1
+            fi
+          done
+          echo ".gitignore is properly configured."
+
+      - name: Check for wildcard CORS
+        run: |
+          if grep -rn "'\\*'" --include="*.js" --include="*.mjs" next.config.mjs app/api/ 2>/dev/null | grep -i "allow-origin"; then
+            echo "ERROR: Wildcard CORS found!"
+            exit 1
+          fi
+          echo "No wildcard CORS found."
