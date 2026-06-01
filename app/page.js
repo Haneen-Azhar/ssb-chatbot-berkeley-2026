@@ -959,7 +959,30 @@ function ChatAppInner() {
         const decoder = new TextDecoder();
         let buffer = '';
         let fullResponse = '';
-        let rafPending = false;
+        let displayedLen = 0;
+        let streamDone = false;
+
+        // Character-by-character reveal loop - runs independently of SSE chunks
+        const CHARS_PER_FRAME = 3; // characters revealed per animation frame
+        function revealLoop() {
+          if (displayedLen < fullResponse.length) {
+            displayedLen = Math.min(displayedLen + CHARS_PER_FRAME, fullResponse.length);
+            if (streamBubble) {
+              streamBubble.innerHTML = renderMarkdown(fullResponse.slice(0, displayedLen));
+            }
+            const area = document.querySelector('.messages-area');
+            if (area) area.scrollTop = area.scrollHeight;
+          }
+          if (!streamDone || displayedLen < fullResponse.length) {
+            requestAnimationFrame(revealLoop);
+          } else {
+            // Final render with complete text
+            if (streamBubble) {
+              streamBubble.innerHTML = renderMarkdown(fullResponse);
+            }
+          }
+        }
+        requestAnimationFrame(revealLoop);
 
         while (true) {
           const { done, value } = await reader.read();
@@ -975,25 +998,18 @@ function ChatAppInner() {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
                   fullResponse += data.text;
-                  // Write directly to DOM - no React re-render during streaming
-                  if (!rafPending) {
-                    rafPending = true;
-                    requestAnimationFrame(() => {
-                      rafPending = false;
-                      if (streamBubble) {
-                        streamBubble.innerHTML = renderMarkdown(fullResponse);
-                      }
-                      // Auto-scroll
-                      const area = document.querySelector('.messages-area');
-                      if (area) area.scrollTop = area.scrollHeight;
-                    });
-                  }
                 }
               } catch (e) {
                 console.error('JSON parse error:', e);
               }
             }
           }
+        }
+
+        streamDone = true;
+        // Wait for reveal loop to finish
+        while (displayedLen < fullResponse.length) {
+          await new Promise((r) => requestAnimationFrame(r));
         }
 
         // Sync final content back to React state (one render, not hundreds)
