@@ -1,174 +1,191 @@
-# Berkeley B Summer Staff Portal - Reconstruction
+# Summer - SSB Staff Assistant
 
-This is an exact reconstruction of the Berkeley B Summer Staff Portal (Google Sites).
+AI chatbot for Summer Springboard camp staff. Built with Next.js, Claude, and Supabase.
 
-## Features
+**Live:** https://ssb-chatbot-berkeley-2026.vercel.app
 
-- ✅ Identical navigation structure with 5 main sections
-- ✅ Exact color scheme matching Google Sites (navy blue #05062D)
-- ✅ Montserrat and Open Sans fonts
-- ✅ Responsive design for mobile, tablet, and desktop
-- ✅ Hero section with background image overlay
-- ✅ Sticky header navigation
-- ✅ Footer with report abuse and page details links
-- ✨ **NEW: AI Chatbot Assistant** - "Ask me anything" button with full SSB knowledge base
+## What it does
 
-## Pages Included
+Staff sign in with Google or magic link, ask questions about camp policies, schedules, emergencies, and student issues. The bot responds with accurate, sourced answers from a 50-file knowledge base covering everything from incident reporting to meal logistics.
 
-1. **Home** (`index.html`) - Main landing page
-2. **Schedules, Groups, & Lists** (`schedules-groups-lists.html`)
-3. **Course-Specific Info** (`course-specific-info.html`)
-4. **Important Resources** (`important-resources.html`)
-5. **CD/AM/SPA Resources** (`cdamspa-resources.html`)
+- Role-aware responses (CD, AM, SPA, Mentor, Instructor get different guidance)
+- Each user names their own bot
+- Conversation history persists across devices (stored in Supabase)
+- Campus memory: upload XLSX/CSV files to give the bot live data (schedules, rooming, mentor lists)
+- Admin dashboard with AI-powered query analysis and session archiving
 
-## 🤖 AI Chatbot Assistant
-
-The portal now includes an embedded SSB AI chatbot that can answer any question about Summer Springboard 2026!
-
-**Features:**
-- 💬 Floating "Ask me anything" button in top right
-- 🎯 Quick actions: Emergency, Contacts, Locations, Schedule
-- 📚 Full access to knowledge base (emergency procedures, staff schedules, courses, etc.)
-- 📱 Mobile responsive modal interface
-- 🔗 Provides links and sources with every answer
-
-**To use the chatbot:**
-
-1. **Start the backend server:**
-   ```bash
-   cd "team B bot/backend"
-   npm install
-   npm run dev
-   ```
-
-2. **Open any portal page** (index.html, etc.)
-
-3. **Click the blue "Ask me anything" button** in top right
-
-See [CHATBOT_SETUP.md](CHATBOT_SETUP.md) for full documentation.
-
----
-
-## How to Run the Portal
-
-### Option 1: Using Python's built-in server
+## Quick start
 
 ```bash
-cd Berkeley-Portal-Reconstruction
-python3 -m http.server 8000
+git clone https://github.com/Haneen-Azhar/ssb-chatbot-berkeley-2026.git
+cd ssb-chatbot-berkeley-2026
+npm install
+cp .env.example .env.local  # fill in your keys
+npm run dev                  # http://localhost:3000
 ```
 
-Then open: http://localhost:8000
+### Environment variables
 
-### Option 2: Using Node.js http-server
+```
+ANTHROPIC_API_KEY=sk-ant-...
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+## Architecture
+
+```
+Next.js App Router (Vercel)
+├── Frontend: React client component (app/page.js)
+├── API Routes: /api/chat, /api/admin, /api/campus-memory
+├── Auth: Supabase (Google OAuth + magic link)
+├── Database: Supabase Postgres (profiles, queries, campus_memory)
+├── AI: Anthropic Claude Sonnet 4
+├── Knowledge Base: 50 markdown files (loaded at startup, keyword search)
+└── CI/CD: GitHub Actions → Vercel auto-deploy
+```
+
+## Project structure
+
+```
+.
+├── app/
+│   ├── page.js                    # Main chat interface (login, chat, sidebar, settings)
+│   ├── layout.js                  # Root layout (fonts, metadata, PWA)
+│   ├── globals.css                # All styles (mobile-first)
+│   ├── admin/page.js              # Admin analytics dashboard
+│   ├── campus-memory/page.js      # Upload/manage campus-specific files
+│   └── api/
+│       ├── chat/route.js          # Non-streaming chat endpoint
+│       ├── chat/stream/route.js   # SSE streaming chat endpoint
+│       ├── chat/profile/route.js  # GET/PUT user profile
+│       ├── chat/conversations/    # GET/DELETE conversation history
+│       ├── chat/feedback/         # POST feedback
+│       ├── admin/route.js         # Overview stats
+│       ├── admin/queries/         # Paginated query list
+│       ├── admin/users/           # User list with query counts
+│       ├── admin/topics/          # KB topic frequency
+│       ├── admin/analyze/         # AI-powered query analysis
+│       ├── admin/sessions/        # Session archive/rename
+│       ├── campus-memory/         # CRUD for campus context
+│       ├── parse-file/            # Server-side XLSX/CSV parsing
+│       └── health/                # Health check
+├── lib/
+│   ├── auth.js                    # JWT validation (getUser, requireAdmin)
+│   ├── claude.js                  # Anthropic SDK (chat + streaming)
+│   ├── database.js                # Supabase queries (profiles, queries, campus memory, admin)
+│   ├── knowledgeBase.js           # KB loader + inverted index search
+│   ├── prompts.js                 # System prompt + role context + bot naming
+│   ├── rateLimit.js               # In-memory rate limiter (per IP)
+│   ├── search.js                  # Web search (Tavily → Brave fallback)
+│   ├── supabase.js                # Client factories (server + browser)
+│   └── validation.js              # Input validation (message length, history)
+├── knowledge_base/                # 50 markdown files
+│   ├── 01_emergency_procedures.md
+│   ├── ...
+│   ├── scenarios/                 # behavioral, medical, mental_health, parent_issues
+│   └── training/                  # mentorship, de-escalation, boundaries, wellness
+├── tests/                         # 386 tests across 19 files
+├── public/images/                 # Cal Bear mascot, avatars
+├── supabase/                      # Schema SQL, email templates, config
+├── .github/workflows/ci.yml       # CI pipeline (test + security audit)
+└── next.config.mjs                # CORS, server packages
+```
+
+## Database schema
+
+**profiles** - extends Supabase auth
+- id, email, name, role (CD/AM/SPA/Mentor/Instructor/Other), bot_name, is_admin
+
+**queries** - every chat interaction
+- id, user_id, session_id, message, response, sources (JSONB), kb_results_count, search_used, input_tokens, output_tokens, response_time_ms, session_label
+
+**campus_memory** - configurable context
+- id, memory_type (text_block/file), title, content, file_name, file_type, uploaded_by
+
+## Auth flow
+
+1. Google Sign-In or magic link (restricted to @summerspringboard.com + invited emails)
+2. First login → onboarding: set name, role, bot name
+3. JWT token sent with every API request
+4. `optionalAuth` on chat (works without login), `requireAdmin` on admin routes
+
+## How the chat works
+
+1. User sends message
+2. Rate limit check (15/min per IP)
+3. Input validation (5000 char max)
+4. Knowledge base search (inverted index, top 5 results)
+5. Web search (if query contains time-sensitive keywords)
+6. Campus memory context loaded from Supabase
+7. System prompt + role context + KB results + campus memory → Claude
+8. Response streamed via SSE
+9. Query logged to Supabase (async, never blocks response)
+
+## Admin dashboard
+
+Access: `/admin` (requires is_admin = true in profiles)
+
+- Overview cards: total queries, today, this week, active users, avg response time
+- Users table with expandable query history
+- Topic frequency from KB source matches
+- AI analysis: Claude analyzes all queries and reports confusion areas per role
+- Session management: archive current queries, filter by session, rename sessions
+
+## Campus memory
+
+Access: `/campus-memory` (any authenticated user)
+
+- Text block: free-form notes (contacts, building info, dining details)
+- File uploads: XLSX, CSV, TXT, ODS, PDF
+- XLSX files parsed server-side with sheet grouping (SCHEDULE, EXCURSIONS, STAFF, etc.)
+- Content injected into system prompt on every chat request
+- Delete = context immediately removed from next chat
+
+## Testing
 
 ```bash
-npm install -g http-server
-cd Berkeley-Portal-Reconstruction
-http-server -p 8000
+npm test          # run all 386 tests
+npm run test:watch  # watch mode
 ```
 
-Then open: http://localhost:8000
+19 test files covering:
+- API routes (chat, stream, profile, feedback, admin, conversations, health)
+- Auth (token validation, admin checks, null guards)
+- Database (CRUD, query logging, admin analytics, session filtering)
+- Knowledge base (loading, search relevance, source URL mapping)
+- Prompts (system prompt, role context, bot naming, search triggers)
+- Security (no secrets in code, CORS, auth on admin routes)
+- Structure (all files exist, dependencies, manifest)
+- PWA (manifest, viewport, apple-web-app)
+- Rate limiting and input validation
+- CI pipeline (workflow exists, correct config)
+- KB completeness (every scenario, training, and policy file exists)
 
-### Option 3: Using Live Server (VS Code)
+## CI/CD
 
-1. Install "Live Server" extension in VS Code
-2. Right-click on `index.html`
-3. Select "Open with Live Server"
+Push to `main` triggers:
+1. **GitHub Actions** - tests + security audit (secret scanning, npm audit, CORS check)
+2. **Vercel** - auto-deploys to production
 
-## File Structure
+Branch protection on `main`: both CI checks must pass, no force pushes.
 
-```
-Berkeley-Portal-Reconstruction/
-├── index.html
-├── schedules-groups-lists.html
-├── course-specific-info.html
-├── important-resources.html
-├── cdamspa-resources.html
-├── README.md
-├── CHATBOT_SETUP.md
-├── css/
-│   ├── normalize.css
-│   ├── berkeley-portal.css
-│   └── chatbot-widget.css          ← Chatbot styles
-├── js/
-│   └── chatbot-widget.js            ← Chatbot logic
-└── images/
-    ├── favicon.png
-    └── ssb-avatar.png               ← SSB logo for chatbot
-```
+## Security
 
-## Design Details
+- Supabase Auth (Google OAuth + magic link)
+- JWT validation on all API requests
+- Row Level Security on Supabase tables
+- Rate limiting: 15 chat/min, 10 auth/min, 30 admin/min per IP
+- Input validation: 5000 char message limit, 30 history items max
+- CORS restricted to deployment domain
+- Secret scanning in CI (blocks commits with API keys)
+- No secrets in git history
 
-### Colors
-- Primary Dark: `rgba(5, 6, 45, 1)` - #05062D
-- Secondary Dark: `rgba(27, 27, 27, 1)` - #1B1B1B
-- Text Light: `rgba(243, 243, 243, 1)` - #F3F3F3
-- Text Dark: `rgba(6, 8, 56, 1)` - #060838
-- Accent Gray: `rgba(211, 211, 211, 1)` - #D3D3D3
+## Deployment
 
-### Typography
-- **Headings**: Montserrat (400, 500, 600, 700)
-- **Body**: Open Sans (300, 400, 600)
-
-### Responsive Breakpoints
-- Desktop: 1200px max-width
-- Tablet: < 768px
-- Mobile: < 480px
-
-## Content Included
-
-### Schedules, Groups, & Lists
-- **Schedules**: Staff Schedule/Assignments, Daily Student Schedule, Master Schedule
-- **Groups**: Academic Groups, Clubs, CRW Groups, Commuter List, Mentor Groups
-- **Lists**: Airport List, Housing List, Master Student List, Supplies Tracking, First Aid Kit Restock, Student Arrival Checklist
-
-### Course-Specific Info
-All 10 courses with instructor info (TBA):
-- Architecture, Astrophysics, Biotechnology, Design Thinking & Rapid Prototyping
-- Generative AI & Machine Learning, Emergency Medicine, Neuroscience & Behavioral Biology
-- Nursing, Physics & Quantum Computing, Pre Med
-
-### Important Resources
-14 resources including:
-- Campus Boundary Map, Campus Tracker, Student Code of Conduct
-- Excursion Cheat-Sheets, Student Orientation Slides, Photo/Video Upload
-- Staff Manual, Student Folders, Student POA's, Emergency Action Plan
-- Staff Binder, Unit 3 Campus Photos
-
-### CD/AM/SPA Resources
-- **Administrative**: Petty Cash Log, Training materials, Emergency contacts, Phone directory
-- **Excursions**: Saturday Excursion info, Great America/Six Flags info with PDFs
-
-## Testing Checklist
-
-- [x] All navigation links work correctly
-- [x] Active page highlighted in navigation
-- [x] Hero section displays with background image
-- [x] Responsive design works on all screen sizes
-- [x] Header stays sticky on scroll
-- [x] Footer displays on all pages
-- [x] Fonts load correctly from Google Fonts
-- [x] Color scheme matches original site
-- [x] All actual content from original site included
-- [x] All embedded Google Docs/Sheets/Drive links functional
-- [x] Course cards display in responsive grid
-- [x] Resource lists styled correctly
-
-## Notes
-
-This reconstruction uses:
-- External Google Fonts (Montserrat, Open Sans)
-- External hero background image from Google's CDN
-- Vanilla JavaScript for chatbot (no frameworks required)
-- Standards-compliant HTML5 and CSS3
-
-**Portal built to exactly match:** https://sites.google.com/summerspringboard.com/berkeley-b-summer-staff-portal/home
-
-**Chatbot powered by:** Anthropic Claude Sonnet 4 via "team B bot" backend
-
-## Related Projects
-
-- **team B bot/** - Standalone React chatbot application
-- **knowledge_base/** - Complete SSB 2026 knowledge base (20,700+ words)
-- **Berkeley-Portal-Reconstruction/** - This portal with embedded chatbot
+**Production:** Vercel (auto-deploy from GitHub `main` branch)
+**Database:** Supabase (PostgreSQL + Auth)
+**AI:** Anthropic Claude Sonnet 4
+**Domain:** ssb-chatbot-berkeley-2026.vercel.app
