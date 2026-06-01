@@ -45,6 +45,7 @@ function exportConversation(messages, botName) {
   URL.revokeObjectURL(url);
 }
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 // ─── In-app browser detection (runs before anything else) ──
@@ -857,7 +858,6 @@ function ChatAppInner() {
   const deleteConversation = useCallback(
     async (convoId, e) => {
       e.stopPropagation();
-      // Delete from server FIRST, then update UI
       if (session) {
         await deleteConversationFromServer(convoId, session.access_token);
       }
@@ -1243,12 +1243,6 @@ function ChatAppInner() {
 
   // ─── Render: Chat Interface ───────────────────────────
   const hasMessages = messages.length > 0;
-  const conversationTitle = useMemo(() => {
-    const firstUser = messages.find((m) => m.role === 'user');
-    if (!firstUser) return null;
-    const text = firstUser.content.trim();
-    return text.length > 50 ? text.slice(0, 50) + '...' : text;
-  }, [messages]);
 
   return (
     <div className="chat-app">
@@ -1303,6 +1297,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1324,6 +1331,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1345,6 +1365,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1366,6 +1399,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1541,9 +1587,6 @@ function ChatAppInner() {
             ) : (
               /* Message list */
               <>
-                {conversationTitle && (
-                  <div className="conversation-title">{conversationTitle}</div>
-                )}
                 {messages.map((msg, idx) => {
                   const isLastAssistant =
                     msg.role === 'assistant' &&
