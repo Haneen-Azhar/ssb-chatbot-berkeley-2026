@@ -811,6 +811,8 @@ input, select, textarea {
   line-height: 1.6;
   overflow-wrap: break-word;
   word-break: break-word;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .message.assistant .message-bubble {
@@ -821,10 +823,9 @@ input, select, textarea {
 }
 
 .message.user .message-bubble {
-  background: #f3f0ea;
-  color: #1a1a1a;
-  border-radius: 20px;
-  display: inline-block;
+  background: #003262;
+  color: white;
+  border-top-right-radius: 4px;
 }
 
 /* Markdown in bot messages */
@@ -869,7 +870,7 @@ input, select, textarea {
 }
 
 .message.user .message-bubble a {
-  color: #003262;
+  color: #93c5fd;
   text-decoration: underline;
 }
 
@@ -1205,6 +1206,7 @@ input, select, textarea {
 
 .user-bubble-wrapper {
   align-items: flex-end;
+  max-width: 75%;
 }
 
 /* ─── Action row below messages (Claude-style) ───────── */
