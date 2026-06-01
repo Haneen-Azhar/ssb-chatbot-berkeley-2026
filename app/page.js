@@ -320,8 +320,13 @@ function ChatAppInner() {
 
   // UX feature state
   const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
+  const [feedbackIdx, setFeedbackIdx] = useState({}); // { idx: 'up' | 'down' }
   const [isOnline, setIsOnline] = useState(true);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+
+  // Inline edit state
+  const [editingMessageIdx, setEditingMessageIdx] = useState(null);
+  const [editText, setEditText] = useState('');
 
   // (reserved for hook order)
   useEffect(() => {}, []);
@@ -528,6 +533,15 @@ function ChatAppInner() {
     }
   }, []);
 
+  const handleFeedback = useCallback((idx, type) => {
+    setFeedbackIdx((prev) => ({ ...prev, [idx]: prev[idx] === type ? null : type }));
+    fetch('/api/chat/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: session ? 'Bearer ' + session.access_token : '' },
+      body: JSON.stringify({ messageId: idx, helpful: type === 'up' }),
+    }).catch(() => {});
+  }, [session]);
+
   // ─── Stop generating handler ─────────────────────────
   const handleStopGenerating = useCallback(() => {
     if (abortRef.current) {
@@ -576,22 +590,43 @@ function ChatAppInner() {
     }, 50);
   }, [messages]);
 
-  // ─── Edit and resubmit user message ───────────────────
+  // ─── Inline edit: start editing a user message ────────
   const handleEditMessage = useCallback((msgIdx) => {
     const msg = messages[msgIdx];
     if (!msg || msg.role !== 'user') return;
-    setInputValue(msg.content);
+    setEditingMessageIdx(msgIdx);
+    setEditText(msg.content);
+  }, [messages]);
+
+  // ─── Inline edit: cancel ─────────────────────────────
+  const handleEditCancel = useCallback(() => {
+    setEditingMessageIdx(null);
+    setEditText('');
+  }, []);
+
+  // ─── Inline edit: save & submit ──────────────────────
+  const handleEditSave = useCallback(() => {
+    if (editingMessageIdx === null) return;
+    const newText = editText.trim();
+    if (!newText) return;
+
     // Remove this message and everything after it
-    setMessages((prev) => prev.slice(0, msgIdx));
+    const idx = editingMessageIdx;
+    setMessages((prev) => prev.slice(0, idx));
     setChatHistory((prev) => {
-      // Count how many user/assistant messages are in messages[0..msgIdx-1]
-      const remaining = messages.slice(0, msgIdx).filter((m) => m.role === 'user' || m.role === 'assistant');
+      const remaining = messages.slice(0, idx).filter((m) => m.role === 'user' || m.role === 'assistant');
       return remaining;
     });
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [messages]);
+
+    // Reset edit state
+    setEditingMessageIdx(null);
+    setEditText('');
+
+    // Send the edited message
+    setTimeout(() => {
+      if (sendMessageRef.current) sendMessageRef.current(newText);
+    }, 50);
+  }, [editingMessageIdx, editText, messages]);
 
   // ─── Login handlers ───────────────────────────────────
   const handleGoogleSignIn = useCallback(async () => {
@@ -1574,48 +1609,83 @@ function ChatAppInner() {
                                 __html: renderMarkdown(msg.content),
                               }}
                             />
-                            {/* Copy button */}
-                            <button
-                              className="msg-copy-btn"
-                              onClick={() => handleCopyMessage(msg.content, idx)}
-                              title="Copy message"
-                            >
-                              {copiedMsgIdx === idx ? (
-                                <span className="msg-copied-text">Copied!</span>
-                              ) : (
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                                </svg>
-                              )}
-                            </button>
-                            {/* Regenerate button (last assistant message only) */}
-                            {isLastAssistant && !isTyping && (
-                              <button className="msg-regenerate-btn" onClick={handleRegenerate}>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="23 4 23 10 17 10" />
-                                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                                </svg>
-                                Regenerate
+                            <div className="msg-actions">
+                              <button className="msg-action-btn" onClick={() => handleCopyMessage(msg.content, idx)} title="Copy">
+                                {copiedMsgIdx === idx ? (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                ) : (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                                )}
                               </button>
-                            )}
+                              <button className={`msg-action-btn${feedbackIdx[idx] === 'up' ? ' active' : ''}`} onClick={() => handleFeedback(idx, 'up')} title="Good response">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill={feedbackIdx[idx] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
+                              </button>
+                              <button className={`msg-action-btn${feedbackIdx[idx] === 'down' ? ' active' : ''}`} onClick={() => handleFeedback(idx, 'down')} title="Bad response">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill={feedbackIdx[idx] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" /></svg>
+                              </button>
+                              {isLastAssistant && !isTyping && (
+                                <button className="msg-action-btn" onClick={handleRegenerate} title="Regenerate">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </>
                       ) : (
                         <>
-                          <div className="message-bubble-wrapper user-bubble-wrapper">
-                            <div className="message-bubble">{msg.content}</div>
-                            {/* Edit button */}
-                            <button
-                              className="msg-edit-btn"
-                              onClick={() => handleEditMessage(idx)}
-                              title="Edit message"
-                            >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
+                          <div className="user-hover-actions">
+                            <span className="user-hover-timestamp">
+                              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+                            </span>
+                            <button className="msg-action-btn" onClick={() => handleEditMessage(idx)} title="Edit">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                             </button>
+                            <button className="msg-action-btn" onClick={() => handleCopyMessage(msg.content, idx)} title="Copy">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                            </button>
+                          </div>
+                          <div className="message-bubble-wrapper user-bubble-wrapper">
+                            {editingMessageIdx === idx ? (
+                              <div className="edit-inline">
+                                <textarea
+                                  className="edit-inline-textarea"
+                                  value={editText}
+                                  onChange={(e) => setEditText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      handleEditSave();
+                                    }
+                                    if (e.key === 'Escape') {
+                                      handleEditCancel();
+                                    }
+                                  }}
+                                  autoFocus
+                                  rows={Math.min(editText.split('\n').length + 1, 8)}
+                                />
+                                <div className="edit-inline-actions">
+                                  <button className="edit-inline-cancel" onClick={handleEditCancel}>
+                                    Cancel
+                                  </button>
+                                  <button
+                                    className="edit-inline-save"
+                                    onClick={handleEditSave}
+                                    disabled={!editText.trim()}
+                                  >
+                                    Save &amp; Submit
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              /* Normal display mode */
+                              <div
+                                className="message-bubble user-editable"
+                                onClick={() => handleEditMessage(idx)}
+                                title="Click to edit"
+                              >
+                                {msg.content}
+                              </div>
+                            )}
                           </div>
                           {userAvatar ? (
                             <img

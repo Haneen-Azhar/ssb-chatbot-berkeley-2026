@@ -48,9 +48,9 @@ describe('SYSTEM_PROMPT', () => {
     expect(SYSTEM_PROMPT).toContain('https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform');
   });
 
-  it('contains current date injection', () => {
-    // The prompt template embeds ${new Date()...} so the rendered string has a date
-    expect(SYSTEM_PROMPT).toMatch(/\d{4}-\d{2}-\d{2}/);
+  it('contains current date and time injection', () => {
+    expect(SYSTEM_PROMPT).toContain('Current date and time:');
+    expect(SYSTEM_PROMPT).toContain('Pacific Time');
   });
 });
 

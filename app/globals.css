@@ -1206,11 +1206,21 @@ input, select, textarea {
   align-items: flex-end;
 }
 
-/* ─── Copy button on assistant messages ───────────────── */
-.msg-copy-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+/* ─── Action row below messages (Claude-style) ───────── */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.user-hover-actions {
+  opacity: 1;
+}
+
+.msg-action-btn {
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -1218,70 +1228,171 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   color: #9ca3af;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e5e7eb;
-  opacity: 1;
-  transition: opacity 0.15s ease, color 0.12s ease, background 0.12s ease;
-  z-index: 2;
+  background: transparent;
+  border: none;
+  transition: color 0.12s ease, background 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.msg-copy-btn:hover {
+.msg-action-btn:hover {
   color: #374151;
   background: #f3f4f6;
 }
 
-.msg-copied-text {
-  font-size: 10px;
-  font-weight: 600;
-  color: #16a34a;
-  white-space: nowrap;
+.msg-action-btn.active {
+  color: #003262;
 }
 
-/* ─── Edit button on user messages ───────────────────── */
-.msg-edit-btn {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+/* User message hover actions (timestamp + edit + copy, shown to the left) */
+.user-hover-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.message.user:hover .user-hover-actions {
+  opacity: 1;
+}
+
+.user-hover-actions .msg-action-btn {
+  color: #9ca3af;
+}
+
+.user-hover-actions .msg-action-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.user-hover-timestamp {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+  margin-right: 2px;
+}
+
+/* User message clickable for edit */
+.user-editable {
+  cursor: pointer;
+}
+
+.user-editable:hover {
+  opacity: 0.9;
+}
+
+/* Legacy - keep for compatibility */
+.msg-regenerate-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(0, 50, 98, 0.3);
-  border: none;
-  opacity: 1;
-  transition: opacity 0.15s ease, color 0.12s ease, background 0.12s ease;
-  z-index: 2;
-}
-
-.msg-edit-btn:hover {
-  color: #374151;
-  background: #f3f4f6;
-}
-
-/* ─── Regenerate button ──────────────────────────────── */
-.msg-regenerate-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 6px;
-  padding: 4px 10px;
+  margin-top: 4px;
+  padding: 0;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
+  color: #9ca3af;
   background: transparent;
-  border: 1px solid #e5e7eb;
+  border: none;
   transition: all 0.12s ease;
-  width: fit-content;
+  align-self: center;
 }
 
 .msg-regenerate-btn:hover {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+/* ─── Inline edit (user message editing) ─────────────── */
+.edit-inline {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 200px;
+}
+
+.edit-inline-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #003262;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 48px;
+  max-height: 200px;
+  outline: none;
+  background: #f8fafc;
+  color: #1a1a1a;
+  font-family: inherit;
+  box-shadow: 0 0 0 3px rgba(0, 50, 98, 0.08);
+}
+
+.edit-inline-textarea:focus {
+  border-color: #003262;
+  box-shadow: 0 0 0 3px rgba(0, 50, 98, 0.12);
+}
+
+.edit-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.edit-inline-cancel {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  transition: all 0.12s ease;
+}
+
+.edit-inline-cancel:hover {
   color: #374151;
   background: #f3f4f6;
   border-color: #d1d5db;
+}
+
+.edit-inline-save {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background: #003262;
+  border: none;
+  transition: all 0.12s ease;
+}
+
+.edit-inline-save:hover {
+  background: #002147;
+}
+
+.edit-inline-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Inline edit: mobile adjustments ────────────────── */
+@media (max-width: 768px) {
+  .edit-inline-textarea {
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .edit-inline-actions {
+    gap: 6px;
+  }
+
+  .edit-inline-cancel,
+  .edit-inline-save {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
 }
 
 /* ─── Stop generating button ────────────────────────── */
@@ -1476,25 +1587,36 @@ input, select, textarea {
     max-width: 85%;
   }
 
-  /* Desktop: reposition outside bubble, show on hover only */
-  .msg-copy-btn {
+  /* Desktop: show action rows only on hover */
+  .msg-actions {
     opacity: 0;
-    right: -8px;
-    transform: translateX(100%);
-    background: white;
   }
 
-  .message-bubble-wrapper:hover .msg-copy-btn {
+  .message:hover .msg-actions {
     opacity: 1;
   }
 
-  .msg-edit-btn {
+  .user-hover-actions {
     opacity: 0;
-    left: -8px;
-    transform: translateX(-100%);
-    color: #9ca3af;
-    background: white;
-    border: 1px solid #e5e7eb;
+  }
+
+  .message.user:hover .user-hover-actions {
+    opacity: 1;
+  }
+
+  /* Remove old positioned buttons */
+  .msg-copy-btn {
+    display: none;
+  }
+
+  .msg-edit-btn {
+    display: none;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
   }
 
   .msg-edit-btn:hover {
