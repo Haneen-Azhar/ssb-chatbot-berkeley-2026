@@ -62,7 +62,13 @@ class ErrorBoundary extends React.Component {
               lineHeight: '1.5',
             }}
           >
-            Try refreshing the page. If the problem continues, contact support.
+            Try refreshing the page. If the problem continues,{' '}
+            <a
+              href="mailto:haneen@uni.minerva.edu?subject=SSB%20chatbot%20support%20issue"
+              style={{ color: '#003262', textDecoration: 'underline' }}
+            >
+              contact support
+            </a>.
           </p>
           <button
             onClick={() => window.location.reload()}

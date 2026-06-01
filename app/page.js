@@ -45,7 +45,6 @@ function exportConversation(messages, botName) {
   URL.revokeObjectURL(url);
 }
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 // ─── In-app browser detection (runs before anything else) ──
@@ -856,12 +855,13 @@ function ChatAppInner() {
   );
 
   const deleteConversation = useCallback(
-    (convoId, e) => {
+    async (convoId, e) => {
       e.stopPropagation();
-      setConversations((prev) => prev.filter((c) => c.id !== convoId));
+      // Delete from server FIRST, then update UI
       if (session) {
-        deleteConversationFromServer(convoId, session.access_token);
+        await deleteConversationFromServer(convoId, session.access_token);
       }
+      setConversations((prev) => prev.filter((c) => c.id !== convoId));
       if (activeConvoId === convoId) {
         setMessages([]);
         setChatHistory([]);
@@ -870,7 +870,7 @@ function ChatAppInner() {
         pushConvoUrl(null);
       }
     },
-    [activeConvoId, pushConvoUrl]
+    [activeConvoId, pushConvoUrl, session]
   );
 
   // ─── Send message ─────────────────────────────────────
