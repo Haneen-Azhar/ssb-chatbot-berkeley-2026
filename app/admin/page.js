@@ -74,6 +74,7 @@ export default function AdminPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [topics, setTopics] = useState(null);
   const [queries, setQueries] = useState(null);
+  const [feedback, setFeedback] = useState(null);
 
   // Session state
   const [sessions, setSessions] = useState([]);
@@ -181,15 +182,17 @@ export default function AdminPage() {
       const overviewUrl = withSession('/api/admin', activeSession);
       fetchWithAuth(overviewUrl).then(setOverview).catch(() => {});
 
-      const [usersData, topicsData, queriesData] = await Promise.all([
+      const [usersData, topicsData, queriesData, feedbackData] = await Promise.all([
         fetchWithAuth(withSession('/api/admin/users', activeSession)).catch(() => []),
         fetchWithAuth(withSession('/api/admin/topics', activeSession)).catch(() => []),
         fetchWithAuth(withSession('/api/admin/queries?limit=50', activeSession)).catch(() => []),
+        fetchWithAuth(withSession('/api/admin/feedback', activeSession)).catch(() => ({ up: [], down: [] })),
       ]);
       setUsers(Array.isArray(usersData) ? usersData : usersData?.data || []);
       const topicsArr = Array.isArray(topicsData) ? topicsData : topicsData?.data || [];
       setTopics([...topicsArr].sort((a, b) => (b.count || 0) - (a.count || 0)));
       setQueries(Array.isArray(queriesData) ? queriesData : queriesData?.data || []);
+      setFeedback(feedbackData || { up: [], down: [] });
     }
     loadData();
   }, [authChecked, accessToken, fetchWithAuth, activeSession, withSession]);
@@ -732,6 +735,59 @@ export default function AdminPage() {
             </table>
           </div>
         </section>
+
+        {/* Feedback */}
+        {feedback && (feedback.up.length > 0 || feedback.down.length > 0) && (
+          <section className={styles.dashboardSection}>
+            <h2 className={styles.sectionHeader}>
+              Feedback ({feedback.down.length} disliked · {feedback.up.length} liked)
+            </h2>
+            <div className={styles.queriesList} style={{ maxHeight: '400px' }}>
+              {feedback.down.length > 0 && (
+                <>
+                  <div style={{ padding: '12px 24px', fontSize: '12px', fontWeight: 600, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.5px', background: '#fef2f2' }}>
+                    Disliked responses
+                  </div>
+                  {feedback.down.map((item, i) => (
+                    <div key={`down-${i}`} className={styles.queryEntry} style={{ borderLeft: '3px solid #ef4444' }}>
+                      <div className={styles.queryMeta}>
+                        <div className={styles.queryUser}>
+                          {item.profiles?.name || 'Anonymous'} <RoleBadge role={item.profiles?.role} />
+                        </div>
+                        <div className={styles.queryTimestamp}>{formatTime(item.created_at)}</div>
+                      </div>
+                      <div className={styles.queryPreview}>
+                        <strong>Q:</strong> {truncate(item.message, 80)}<br />
+                        <strong>A:</strong> {truncate(item.response, 120)}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              {feedback.up.length > 0 && (
+                <>
+                  <div style={{ padding: '12px 24px', fontSize: '12px', fontWeight: 600, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px', background: '#f0fdf4' }}>
+                    Liked responses
+                  </div>
+                  {feedback.up.map((item, i) => (
+                    <div key={`up-${i}`} className={styles.queryEntry} style={{ borderLeft: '3px solid #22c55e' }}>
+                      <div className={styles.queryMeta}>
+                        <div className={styles.queryUser}>
+                          {item.profiles?.name || 'Anonymous'} <RoleBadge role={item.profiles?.role} />
+                        </div>
+                        <div className={styles.queryTimestamp}>{formatTime(item.created_at)}</div>
+                      </div>
+                      <div className={styles.queryPreview}>
+                        <strong>Q:</strong> {truncate(item.message, 80)}<br />
+                        <strong>A:</strong> {truncate(item.response, 120)}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Recent Queries */}
         <section className={styles.dashboardSection}>
