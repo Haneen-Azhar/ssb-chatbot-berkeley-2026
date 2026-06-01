@@ -75,6 +75,9 @@ export default function AdminPage() {
   const [topics, setTopics] = useState(null);
   const [queries, setQueries] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [feedbackTab, setFeedbackTab] = useState('down'); // 'down' | 'up'
+  const [feedbackShowAll, setFeedbackShowAll] = useState(false);
+  const [feedbackExpandedIdx, setFeedbackExpandedIdx] = useState(null);
 
   // Session state
   const [sessions, setSessions] = useState([]);
@@ -737,57 +740,90 @@ export default function AdminPage() {
         </section>
 
         {/* Feedback */}
-        {feedback && (feedback.up.length > 0 || feedback.down.length > 0) && (
-          <section className={styles.dashboardSection}>
-            <h2 className={styles.sectionHeader}>
-              Feedback ({feedback.down.length} disliked · {feedback.up.length} liked)
-            </h2>
-            <div className={styles.queriesList} style={{ maxHeight: '400px' }}>
-              {feedback.down.length > 0 && (
-                <>
-                  <div style={{ padding: '12px 24px', fontSize: '12px', fontWeight: 600, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.5px', background: '#fef2f2' }}>
-                    Disliked responses
+        {feedback && (feedback.up.length > 0 || feedback.down.length > 0) && (() => {
+          const items = feedbackTab === 'down' ? feedback.down : feedback.up;
+          const displayed = feedbackShowAll ? items : items.slice(0, 5);
+          const borderColor = feedbackTab === 'down' ? '#ef4444' : '#22c55e';
+          return (
+            <section className={styles.dashboardSection}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', borderBottom: '1px solid #e0e4e8' }}>
+                <div style={{ display: 'flex', gap: '0' }}>
+                  <button
+                    onClick={() => { setFeedbackTab('down'); setFeedbackShowAll(false); setFeedbackExpandedIdx(null); }}
+                    style={{
+                      padding: '14px 20px', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: feedbackTab === 'down' ? '#991b1b' : '#6b7280',
+                      borderBottom: feedbackTab === 'down' ? '2px solid #ef4444' : '2px solid transparent',
+                    }}
+                  >
+                    Disliked ({feedback.down.length})
+                  </button>
+                  <button
+                    onClick={() => { setFeedbackTab('up'); setFeedbackShowAll(false); setFeedbackExpandedIdx(null); }}
+                    style={{
+                      padding: '14px 20px', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: feedbackTab === 'up' ? '#166534' : '#6b7280',
+                      borderBottom: feedbackTab === 'up' ? '2px solid #22c55e' : '2px solid transparent',
+                    }}
+                  >
+                    Liked ({feedback.up.length})
+                  </button>
+                </div>
+              </div>
+              <div className={styles.queriesList} style={{ maxHeight: feedbackShowAll ? 'none' : '500px' }}>
+                {items.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
+                    No {feedbackTab === 'down' ? 'disliked' : 'liked'} responses yet.
                   </div>
-                  {feedback.down.map((item, i) => (
-                    <div key={`down-${i}`} className={styles.queryEntry} style={{ borderLeft: '3px solid #ef4444' }}>
+                ) : (
+                  displayed.map((item, i) => (
+                    <div
+                      key={`${feedbackTab}-${i}`}
+                      className={styles.queryEntry}
+                      style={{ borderLeft: `3px solid ${borderColor}`, cursor: 'pointer' }}
+                      onClick={() => setFeedbackExpandedIdx(feedbackExpandedIdx === i ? null : i)}
+                    >
                       <div className={styles.queryMeta}>
                         <div className={styles.queryUser}>
                           {item.profiles?.name || 'Anonymous'} <RoleBadge role={item.profiles?.role} />
                         </div>
                         <div className={styles.queryTimestamp}>{formatTime(item.created_at)}</div>
                       </div>
-                      <div className={styles.queryPreview}>
-                        <strong>Q:</strong> {truncate(item.message, 80)}<br />
-                        <strong>A:</strong> {truncate(item.response, 120)}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-              {feedback.up.length > 0 && (
-                <>
-                  <div style={{ padding: '12px 24px', fontSize: '12px', fontWeight: 600, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px', background: '#f0fdf4' }}>
-                    Liked responses
-                  </div>
-                  {feedback.up.map((item, i) => (
-                    <div key={`up-${i}`} className={styles.queryEntry} style={{ borderLeft: '3px solid #22c55e' }}>
-                      <div className={styles.queryMeta}>
-                        <div className={styles.queryUser}>
-                          {item.profiles?.name || 'Anonymous'} <RoleBadge role={item.profiles?.role} />
+                      {feedbackExpandedIdx === i ? (
+                        <div style={{ fontSize: '14px', lineHeight: '1.6', marginTop: '8px' }}>
+                          <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#003262', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Question</div>
+                            {item.message}
+                          </div>
+                          <div style={{ paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#003262', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Response</div>
+                            {item.response}
+                          </div>
                         </div>
-                        <div className={styles.queryTimestamp}>{formatTime(item.created_at)}</div>
-                      </div>
-                      <div className={styles.queryPreview}>
-                        <strong>Q:</strong> {truncate(item.message, 80)}<br />
-                        <strong>A:</strong> {truncate(item.response, 120)}
-                      </div>
+                      ) : (
+                        <div className={styles.queryPreview}>
+                          <strong>Q:</strong> {truncate(item.message, 80)}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </section>
-        )}
+                  ))
+                )}
+                {items.length > 5 && !feedbackShowAll && (
+                  <button
+                    onClick={() => setFeedbackShowAll(true)}
+                    style={{
+                      display: 'block', width: '100%', padding: '12px', textAlign: 'center',
+                      fontSize: '13px', fontWeight: 600, color: '#003262', background: '#f8fafc',
+                      border: 'none', borderTop: '1px solid #e5e7eb', cursor: 'pointer',
+                    }}
+                  >
+                    Show all {items.length} responses
+                  </button>
+                )}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Recent Queries */}
         <section className={styles.dashboardSection}>
