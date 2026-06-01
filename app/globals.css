@@ -483,6 +483,10 @@ input, select, textarea {
   opacity: 1;
 }
 
+.convo-item.active .convo-delete {
+  opacity: 1;
+}
+
 .convo-delete:hover {
   color: #ef4444;
 }
