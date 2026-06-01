@@ -294,6 +294,18 @@ function ChatAppInner() {
       if (response.ok) {
         const data = await response.json();
         const profile = data.profile || data;
+
+        // Sync Google avatar if not stored yet
+        const googleAvatar = sess.user?.user_metadata?.avatar_url || sess.user?.user_metadata?.picture;
+        if (googleAvatar && !profile.avatar_url) {
+          fetch('/api/chat/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sess.access_token },
+            body: JSON.stringify({ avatar_url: googleAvatar }),
+          }).catch(() => {});
+          profile.avatar_url = googleAvatar;
+        }
+
         setUserProfile(profile);
 
         if (!profile.name || !profile.role) {
@@ -840,6 +852,7 @@ function ChatAppInner() {
   const userName = userProfile?.name || 'there';
   const userRole = userProfile?.role || '';
   const userInitial = userName.charAt(0).toUpperCase();
+  const userAvatar = userProfile?.avatar_url || null;
   const groupedConvos = useMemo(() => groupConversationsByDate(conversations), [conversations]);
 
   // ─── Render: Loading ──────────────────────────────────
@@ -1137,14 +1150,24 @@ function ChatAppInner() {
 
         <div className="sidebar-bottom">
           <div className="sidebar-user">
-            <div
-              className="sidebar-user-avatar"
-              style={{
-                background: ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
-              }}
-            >
-              {userInitial}
-            </div>
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className="sidebar-user-avatar"
+                style={{ objectFit: 'cover' }}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div
+                className="sidebar-user-avatar"
+                style={{
+                  background: ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
+                }}
+              >
+                {userInitial}
+              </div>
+            )}
             <div className="sidebar-user-info">
               <span className="sidebar-user-name">{escapeHtml(userName)}</span>
               {userRole && (
@@ -1284,15 +1307,25 @@ function ChatAppInner() {
                     ) : (
                       <>
                         <div className="message-bubble">{msg.content}</div>
-                        <div
-                          className="message-avatar user-avatar"
-                          style={{
-                            background:
-                              ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
-                          }}
-                        >
-                          {userInitial}
-                        </div>
+                        {userAvatar ? (
+                          <img
+                            src={userAvatar}
+                            alt={userName}
+                            className="message-avatar"
+                            style={{ objectFit: 'cover' }}
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div
+                            className="message-avatar user-avatar"
+                            style={{
+                              background:
+                                ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
+                            }}
+                          >
+                            {userInitial}
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

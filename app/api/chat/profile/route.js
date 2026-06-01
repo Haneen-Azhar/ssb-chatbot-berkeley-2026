@@ -26,12 +26,13 @@ export async function PUT(request) {
   }
 
   try {
-    const { name, role, bot_name } = await request.json();
+    const { name, role, bot_name, avatar_url } = await request.json();
 
     const updates = {};
     if (name !== undefined) updates.name = name;
     if (role !== undefined) updates.role = role;
     if (bot_name !== undefined) updates.bot_name = bot_name;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
 
     const updated = await updateProfile(user.id, updates);
 
