@@ -691,6 +691,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 .messages-area::-webkit-scrollbar {
@@ -1178,6 +1179,194 @@ input, select, textarea {
   color: #fff;
 }
 
+/* ─── Offline Banner ─────────────────────────────────── */
+.offline-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 8px 16px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 13px;
+  text-align: center;
+  border-bottom: 1px solid #fde68a;
+}
+
+/* ─── Message bubble wrapper (for copy/edit buttons) ── */
+.message-bubble-wrapper {
+  position: relative;
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-bubble-wrapper {
+  align-items: flex-end;
+}
+
+/* ─── Copy button on assistant messages ───────────────── */
+.msg-copy-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  opacity: 1;
+  transition: opacity 0.15s ease, color 0.12s ease, background 0.12s ease;
+  z-index: 2;
+}
+
+.msg-copy-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.msg-copied-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+/* ─── Edit button on user messages ───────────────────── */
+.msg-edit-btn {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 50, 98, 0.3);
+  border: none;
+  opacity: 1;
+  transition: opacity 0.15s ease, color 0.12s ease, background 0.12s ease;
+  z-index: 2;
+}
+
+.msg-edit-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+/* ─── Regenerate button ──────────────────────────────── */
+.msg-regenerate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  transition: all 0.12s ease;
+  width: fit-content;
+}
+
+.msg-regenerate-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* ─── Stop generating button ────────────────────────── */
+.stop-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stop-btn:hover {
+  background: #dc2626;
+}
+
+/* ─── Scroll to bottom button ───────────────────────── */
+.scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  z-index: 5;
+  animation: fadeIn 0.15s ease;
+  transition: color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+  color: #374151;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── Export button in topbar ───────────────────────── */
+.topbar-export-btn {
+  color: #6b7280;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-export-btn:hover {
+  color: #003262;
+  background: #f3f4f6;
+}
+
+/* ─── Export button in sidebar convo items ──────────── */
+.convo-export {
+  opacity: 0;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.12s ease, color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.convo-item:hover .convo-export,
+.convo-item.active .convo-export {
+  opacity: 1;
+}
+
+.convo-export:hover {
+  color: #003262;
+}
+
 /* ─── Desktop overrides (min-width: 769px) ──────────── */
 @media (min-width: 769px) {
   .sidebar {
@@ -1281,5 +1470,39 @@ input, select, textarea {
   .message-bubble {
     padding: 12px 16px;
     max-width: 85%;
+  }
+
+  .message-bubble-wrapper {
+    max-width: 85%;
+  }
+
+  /* Desktop: reposition outside bubble, show on hover only */
+  .msg-copy-btn {
+    opacity: 0;
+    right: -8px;
+    transform: translateX(100%);
+    background: white;
+  }
+
+  .message-bubble-wrapper:hover .msg-copy-btn {
+    opacity: 1;
+  }
+
+  .msg-edit-btn {
+    opacity: 0;
+    left: -8px;
+    transform: translateX(-100%);
+    color: #9ca3af;
+    background: white;
+    border: 1px solid #e5e7eb;
+  }
+
+  .msg-edit-btn:hover {
+    color: #374151;
+    background: #f3f4f6;
+  }
+
+  .user-bubble-wrapper:hover .msg-edit-btn {
+    opacity: 1;
   }
 }

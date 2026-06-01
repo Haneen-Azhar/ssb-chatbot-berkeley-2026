@@ -1,6 +1,49 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+
+// ─── Clipboard copy helper ─────────────────────────────
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Fallback for older browsers / insecure context
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// ─── Export conversation as .txt ────────────────────────
+function exportConversation(messages, botName) {
+  const lines = messages
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .map((m) => {
+      const prefix = m.role === 'user' ? 'You' : 'Assistant';
+      return `${prefix}: ${m.content}`;
+    })
+    .join('\n\n');
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `conversation-${new Date().toISOString().slice(0, 10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
@@ -272,6 +315,13 @@ function ChatAppInner() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const sessionIdRef = useRef(null);
+  const abortRef = useRef(null);
+  const messagesAreaRef = useRef(null);
+
+  // UX feature state
+  const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   // (reserved for hook order)
   useEffect(() => {}, []);
@@ -425,6 +475,34 @@ function ChatAppInner() {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
+  // ─── Online/Offline detection ──────────────────────────
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+
+  // ─── Scroll position tracking ─────────────────────────
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesAreaRef.current;
+    if (!el) return;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
+    setShowScrollBtn(!atBottom);
+  }, []);
+
+  const scrollToBottomSmooth = useCallback(() => {
+    const el = messagesAreaRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
+  }, []);
+
   // ─── Focus input when chat loads ───────────────────────
   useEffect(() => {
     if (view === 'chat' && inputRef.current && window.innerWidth > 768) {
@@ -440,6 +518,80 @@ function ChatAppInner() {
       inputRef.current.style.height = newHeight + 'px';
     }
   }, []);
+
+  // ─── Copy message handler ──────────────────────────────
+  const handleCopyMessage = useCallback(async (text, idx) => {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedMsgIdx(idx);
+      setTimeout(() => setCopiedMsgIdx(null), 1500);
+    }
+  }, []);
+
+  // ─── Stop generating handler ─────────────────────────
+  const handleStopGenerating = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setIsTyping(false);
+  }, []);
+
+  // ─── Regenerate last response ─────────────────────────
+  // sendMessageRef will be set after sendMessage is defined
+  const sendMessageRef = useRef(null);
+
+  const handleRegenerate = useCallback(() => {
+    if (messages.length < 2) return;
+    // Find the last user message
+    let lastUserMsg = null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        lastUserMsg = messages[i];
+        break;
+      }
+    }
+    if (!lastUserMsg) return;
+    // Remove the last assistant message
+    setMessages((prev) => {
+      const copy = [...prev];
+      if (copy.length > 0 && copy[copy.length - 1].role === 'assistant') {
+        copy.pop();
+      }
+      return copy;
+    });
+    setChatHistory((prev) => {
+      const copy = [...prev];
+      if (copy.length > 0 && copy[copy.length - 1].role === 'assistant') {
+        copy.pop();
+      }
+      if (copy.length > 0 && copy[copy.length - 1].role === 'user') {
+        copy.pop();
+      }
+      return copy;
+    });
+    // Re-send via ref to avoid circular dependency
+    setTimeout(() => {
+      if (sendMessageRef.current) sendMessageRef.current(lastUserMsg.content);
+    }, 50);
+  }, [messages]);
+
+  // ─── Edit and resubmit user message ───────────────────
+  const handleEditMessage = useCallback((msgIdx) => {
+    const msg = messages[msgIdx];
+    if (!msg || msg.role !== 'user') return;
+    setInputValue(msg.content);
+    // Remove this message and everything after it
+    setMessages((prev) => prev.slice(0, msgIdx));
+    setChatHistory((prev) => {
+      // Count how many user/assistant messages are in messages[0..msgIdx-1]
+      const remaining = messages.slice(0, msgIdx).filter((m) => m.role === 'user' || m.role === 'assistant');
+      return remaining;
+    });
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages]);
 
   // ─── Login handlers ───────────────────────────────────
   const handleGoogleSignIn = useCallback(async () => {
@@ -639,6 +791,18 @@ function ChatAppInner() {
     }
   }, [activeConvoId, messages, saveCurrentConversation, pushConvoUrl]);
 
+  // ─── Keyboard shortcuts ─────────────────────────────────
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        startNewChat();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [startNewChat]);
+
   const loadConversation = useCallback(
     (convo) => {
       sessionIdRef.current = convo.id;
@@ -680,6 +844,9 @@ function ChatAppInner() {
       const text = (overrideText || inputValue).trim();
       if (!text || isTyping) return;
 
+      // Haptic feedback on mobile
+      if (navigator.vibrate) navigator.vibrate(10);
+
       if (!session) {
         setView('login');
         return;
@@ -711,6 +878,9 @@ function ChatAppInner() {
       }));
 
       try {
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         const response = await fetch('/api/chat/stream', {
           method: 'POST',
           headers: {
@@ -722,6 +892,7 @@ function ChatAppInner() {
             history: recentHistory,
             sessionId: sessionIdRef.current,
           }),
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -774,6 +945,8 @@ function ChatAppInner() {
           }
         }
 
+        abortRef.current = null;
+
         // Update history
         const finalUserMsg = userMessage;
         const finalAssistantMsg = {
@@ -821,6 +994,13 @@ function ChatAppInner() {
           inputRef.current.focus();
         }
       } catch (error) {
+        abortRef.current = null;
+        // If aborted by user, keep partial response and stop cleanly
+        if (error.name === 'AbortError') {
+          setIsTyping(false);
+          return;
+        }
+
         console.error('Chat error:', error);
         setIsTyping(false);
 
@@ -835,6 +1015,11 @@ function ChatAppInner() {
     },
     [inputValue, isTyping, session, chatHistory, activeConvoId]
   );
+
+  // Keep ref in sync so handleRegenerate can call sendMessage
+  useEffect(() => {
+    sendMessageRef.current = sendMessage;
+  }, [sendMessage]);
 
   // ─── Key handler ───────────────────────────────────────
   const handleKeyDown = useCallback(
@@ -1070,6 +1255,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1091,6 +1289,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1112,6 +1323,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1133,6 +1357,19 @@ function ChatAppInner() {
                       onClick={() => loadConversation(c)}
                     >
                       <span className="convo-preview">{c.preview}</span>
+                      {activeConvoId === c.id && messages.length > 0 && (
+                        <button
+                          className="convo-export"
+                          onClick={(e) => { e.stopPropagation(); exportConversation(messages, botName); }}
+                          title="Export"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="convo-delete"
                         onClick={(e) => deleteConversation(c.id, e)}
@@ -1227,6 +1464,19 @@ function ChatAppInner() {
               </svg>
               Campus Info
             </Link>
+            {hasMessages && (
+              <button
+                className="topbar-export-btn"
+                onClick={() => exportConversation(messages, botName)}
+                title="Export conversation"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            )}
             <button className="topbar-settings-btn" onClick={openSettings} title="Settings">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3" />
@@ -1259,7 +1509,14 @@ function ChatAppInner() {
         </div>
 
         {/* Messages area */}
-        <div className="messages-area">
+        <div className="messages-area" ref={messagesAreaRef} onScroll={handleMessagesScroll}>
+          {/* Offline banner */}
+          {!isOnline && (
+            <div className="offline-banner">
+              You&apos;re offline. Messages will send when you reconnect.
+            </div>
+          )}
+
           <div className="messages-container">
             {!hasMessages ? (
               /* Welcome screen */
@@ -1288,48 +1545,95 @@ function ChatAppInner() {
             ) : (
               /* Message list */
               <>
-                {messages.map((msg, idx) => (
-                  <div key={idx} className={`message ${msg.role}`}>
-                    {msg.role === 'assistant' ? (
-                      <>
-                        <img
-                          src="/images/cal-bear-avatar.webp"
-                          alt={botName}
-                          className="message-avatar"
-                        />
-                        <div
-                          className="message-bubble"
-                          dangerouslySetInnerHTML={{
-                            __html: renderMarkdown(msg.content),
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <div className="message-bubble">{msg.content}</div>
-                        {userAvatar ? (
+                {messages.map((msg, idx) => {
+                  const isLastAssistant =
+                    msg.role === 'assistant' &&
+                    idx === messages.length - 1 &&
+                    !isTyping;
+
+                  return (
+                    <div key={idx} className={`message ${msg.role}`} title={msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''}>
+                      {msg.role === 'assistant' ? (
+                        <>
                           <img
-                            src={userAvatar}
-                            alt={userName}
+                            src="/images/cal-bear-avatar.webp"
+                            alt={botName}
                             className="message-avatar"
-                            style={{ objectFit: 'cover' }}
-                            referrerPolicy="no-referrer"
                           />
-                        ) : (
-                          <div
-                            className="message-avatar user-avatar"
-                            style={{
-                              background:
-                                ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
-                            }}
-                          >
-                            {userInitial}
+                          <div className="message-bubble-wrapper">
+                            <div
+                              className="message-bubble"
+                              dangerouslySetInnerHTML={{
+                                __html: renderMarkdown(msg.content),
+                              }}
+                            />
+                            {/* Copy button */}
+                            <button
+                              className="msg-copy-btn"
+                              onClick={() => handleCopyMessage(msg.content, idx)}
+                              title="Copy message"
+                            >
+                              {copiedMsgIdx === idx ? (
+                                <span className="msg-copied-text">Copied!</span>
+                              ) : (
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                              )}
+                            </button>
+                            {/* Regenerate button (last assistant message only) */}
+                            {isLastAssistant && (
+                              <button className="msg-regenerate-btn" onClick={handleRegenerate}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="23 4 23 10 17 10" />
+                                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                </svg>
+                                Regenerate
+                              </button>
+                            )}
                           </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
+                        </>
+                      ) : (
+                        <>
+                          <div className="message-bubble-wrapper user-bubble-wrapper">
+                            <div className="message-bubble">{msg.content}</div>
+                            {/* Edit button */}
+                            <button
+                              className="msg-edit-btn"
+                              onClick={() => handleEditMessage(idx)}
+                              title="Edit message"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </button>
+                          </div>
+                          {userAvatar ? (
+                            <img
+                              src={userAvatar}
+                              alt={userName}
+                              className="message-avatar"
+                              style={{ objectFit: 'cover' }}
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div
+                              className="message-avatar user-avatar"
+                              style={{
+                                background:
+                                  ROLE_BADGES[userRole.toLowerCase()] || ROLE_BADGES.other,
+                              }}
+                            >
+                              {userInitial}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
                 {isTyping && (
                   <div className="message assistant">
                     <img
@@ -1348,6 +1652,15 @@ function ChatAppInner() {
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Scroll to bottom button */}
+          {showScrollBtn && hasMessages && (
+            <button className="scroll-to-bottom-btn" onClick={scrollToBottomSmooth} title="Scroll to bottom">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Input bar */}
@@ -1365,20 +1678,32 @@ function ChatAppInner() {
               }}
               onKeyDown={handleKeyDown}
             />
-            <button
-              className="send-btn"
-              onClick={() => sendMessage()}
-              disabled={isTyping || !inputValue.trim()}
-              title="Send message"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-            </button>
+            {isTyping ? (
+              <button
+                className="stop-btn"
+                onClick={handleStopGenerating}
+                title="Stop generating"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="4" y="4" width="16" height="16" rx="2" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                className="send-btn"
+                onClick={() => sendMessage()}
+                disabled={!inputValue.trim()}
+                title="Send message"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            )}
           </div>
           <p className="input-hint">
-            Press Enter to send, Shift+Enter for new line · <Link href="/privacy" style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Privacy</Link>
+            Press Enter to send, Shift+Enter for new line · <Link href="/privacy" style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Privacy</Link> · <Link href="/terms" style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Terms</Link>
           </p>
         </div>
       </main>

@@ -1,5 +1,6 @@
 import { Montserrat, Open_Sans } from 'next/font/google';
 import './globals.css';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -27,8 +28,20 @@ export const metadata = {
   title: 'Summer - SSB Staff Assistant',
   description: 'Summer is the AI staff assistant for Summer Springboard at UC Berkeley. Ask about schedules, emergency procedures, campus resources, and more.',
   icons: {
-    icon: '/images/cal-bear-avatar.webp',
+    icon: '/images/cal-bear-email.png',
     apple: '/images/cal-bear-avatar.webp',
+  },
+  openGraph: {
+    title: 'Summer - SSB Staff Assistant',
+    description: 'AI assistant for Summer Springboard staff. Get answers about policies, schedules, emergencies, and more.',
+    type: 'website',
+    images: ['/images/cal-bear-avatar.webp'],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Summer - SSB Staff Assistant',
+    description: 'AI assistant for Summer Springboard staff.',
+    images: ['/images/cal-bear-avatar.webp'],
   },
   manifest: '/manifest.json',
   appleWebApp: {
@@ -51,7 +64,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );
