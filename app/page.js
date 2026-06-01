@@ -913,6 +913,7 @@ function ChatAppInner() {
         const decoder = new TextDecoder();
         let buffer = '';
         let fullResponse = '';
+        let rafPending = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -928,15 +929,21 @@ function ChatAppInner() {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
                   fullResponse += data.text;
-                  const updatedContent = fullResponse;
-                  setMessages((prev) => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = {
-                      ...updated[updated.length - 1],
-                      content: updatedContent,
-                    };
-                    return updated;
-                  });
+                  if (!rafPending) {
+                    rafPending = true;
+                    requestAnimationFrame(() => {
+                      rafPending = false;
+                      const snapshot = fullResponse;
+                      setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = {
+                          ...updated[updated.length - 1],
+                          content: snapshot,
+                        };
+                        return updated;
+                      });
+                    });
+                  }
                 }
               } catch (e) {
                 console.error('JSON parse error:', e);
@@ -1583,7 +1590,7 @@ function ChatAppInner() {
                               )}
                             </button>
                             {/* Regenerate button (last assistant message only) */}
-                            {isLastAssistant && (
+                            {isLastAssistant && !isTyping && (
                               <button className="msg-regenerate-btn" onClick={handleRegenerate}>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                   <polyline points="23 4 23 10 17 10" />

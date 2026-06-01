@@ -809,7 +809,6 @@ input, select, textarea {
   border-radius: 16px;
   font-size: 15px;
   line-height: 1.6;
-  max-width: 88%;
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -818,6 +817,7 @@ input, select, textarea {
   background: #f3f4f6;
   color: #1a1a1a;
   border-top-left-radius: 4px;
+  transition: none;
 }
 
 .message.user .message-bubble {
