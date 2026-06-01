@@ -81,9 +81,9 @@ function escapeHtml(text) {
 
 function renderMarkdown(text) {
   let html = escapeHtml(text);
-  html = html.replace(/^### (.+)$/gm, '<strong style="font-size:15px;display:block;margin:12px 0 4px">$1</strong>');
-  html = html.replace(/^## (.+)$/gm, '<strong style="font-size:16px;display:block;margin:14px 0 4px">$1</strong>');
-  html = html.replace(/^# (.+)$/gm, '<strong style="font-size:18px;display:block;margin:16px 0 6px">$1</strong>');
+  html = html.replace(/^### (.+)$/gm, '<strong style="font-size:15px;display:block;margin:8px 0 2px">$1</strong>');
+  html = html.replace(/^## (.+)$/gm, '<strong style="font-size:16px;display:block;margin:10px 0 2px">$1</strong>');
+  html = html.replace(/^# (.+)$/gm, '<strong style="font-size:17px;display:block;margin:12px 0 4px">$1</strong>');
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(
@@ -100,7 +100,11 @@ function renderMarkdown(text) {
     /^&bull; (.+)$/gm,
     '<div class="md-list-item">$1</div>'
   );
+  // Convert newlines: collapse multiple into a single paragraph break
+  html = html.replace(/\n{2,}/g, '<br><br>');
   html = html.replace(/\n/g, '<br>');
+  // Clean up excessive breaks
+  html = html.replace(/(<br>){3,}/g, '<br><br>');
   return html;
 }
 
@@ -944,6 +948,13 @@ function ChatAppInner() {
 
         setMessages((prev) => [...prev, assistantMessage]);
 
+        // Wait one frame for React to render the empty assistant bubble
+        await new Promise((r) => requestAnimationFrame(r));
+
+        // Get direct DOM reference to the last message bubble for smooth streaming
+        const bubbleEls = document.querySelectorAll('.message.assistant .message-bubble');
+        const streamBubble = bubbleEls[bubbleEls.length - 1];
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -964,19 +975,17 @@ function ChatAppInner() {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
                   fullResponse += data.text;
+                  // Write directly to DOM - no React re-render during streaming
                   if (!rafPending) {
                     rafPending = true;
                     requestAnimationFrame(() => {
                       rafPending = false;
-                      const snapshot = fullResponse;
-                      setMessages((prev) => {
-                        const updated = [...prev];
-                        updated[updated.length - 1] = {
-                          ...updated[updated.length - 1],
-                          content: snapshot,
-                        };
-                        return updated;
-                      });
+                      if (streamBubble) {
+                        streamBubble.innerHTML = renderMarkdown(fullResponse);
+                      }
+                      // Auto-scroll
+                      const area = document.querySelector('.messages-area');
+                      if (area) area.scrollTop = area.scrollHeight;
                     });
                   }
                 }
@@ -986,6 +995,16 @@ function ChatAppInner() {
             }
           }
         }
+
+        // Sync final content back to React state (one render, not hundreds)
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            content: fullResponse,
+          };
+          return updated;
+        });
 
         abortRef.current = null;
 
