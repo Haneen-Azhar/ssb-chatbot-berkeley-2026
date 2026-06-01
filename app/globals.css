@@ -1216,6 +1216,7 @@ input, select, textarea {
 
 .user-bubble-wrapper {
   align-items: flex-end;
+  max-width: fit-content;
 }
 
 /* ─── Action row below messages (Claude-style) ───────── */

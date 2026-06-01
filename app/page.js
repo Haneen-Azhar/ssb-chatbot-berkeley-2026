@@ -962,13 +962,15 @@ function ChatAppInner() {
         let displayedLen = 0;
         let streamDone = false;
 
-        // Character-by-character reveal loop - runs independently of SSE chunks
-        const CHARS_PER_FRAME = 3; // characters revealed per animation frame
+        // Character-by-character reveal loop - plain text during streaming, markdown on finish
+        const CHARS_PER_FRAME = 4;
         function revealLoop() {
           if (displayedLen < fullResponse.length) {
             displayedLen = Math.min(displayedLen + CHARS_PER_FRAME, fullResponse.length);
             if (streamBubble) {
-              streamBubble.innerHTML = renderMarkdown(fullResponse.slice(0, displayedLen));
+              // Use textContent during streaming - no markdown flickering
+              streamBubble.textContent = fullResponse.slice(0, displayedLen);
+              streamBubble.style.whiteSpace = 'pre-wrap';
             }
             const area = document.querySelector('.messages-area');
             if (area) area.scrollTop = area.scrollHeight;
@@ -976,8 +978,9 @@ function ChatAppInner() {
           if (!streamDone || displayedLen < fullResponse.length) {
             requestAnimationFrame(revealLoop);
           } else {
-            // Final render with complete text
+            // Final render: switch to markdown
             if (streamBubble) {
+              streamBubble.style.whiteSpace = '';
               streamBubble.innerHTML = renderMarkdown(fullResponse);
             }
           }
