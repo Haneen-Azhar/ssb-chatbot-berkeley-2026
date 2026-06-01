@@ -127,11 +127,10 @@ function renderMarkdown(text) {
     /^&bull; (.+)$/gm,
     '<div class="md-list-item">$1</div>'
   );
-  // Convert newlines: collapse multiple into a single paragraph break
-  html = html.replace(/\n{2,}/g, '<br><br>');
+  // Convert newlines: single break for all
+  html = html.replace(/\n{2,}/g, '<br>');
   html = html.replace(/\n/g, '<br>');
-  // Clean up excessive breaks
-  html = html.replace(/(<br>){3,}/g, '<br><br>');
+  html = html.replace(/(<br>){2,}/g, '<br>');
   return html;
 }
 
