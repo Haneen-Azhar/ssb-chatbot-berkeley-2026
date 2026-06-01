@@ -1211,13 +1211,17 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-top: 4px;
+  margin-top: 2px;
   opacity: 1;
   transition: opacity 0.15s ease;
 }
 
-.user-hover-actions {
-  opacity: 1;
+.user-hover-timestamp {
+  font-size: 12px;
+  color: #9ca3af;
+  white-space: nowrap;
+  margin-right: 2px;
+  line-height: 28px;
 }
 
 .msg-action-btn {
@@ -1241,45 +1245,6 @@ input, select, textarea {
 
 .msg-action-btn.active {
   color: #003262;
-}
-
-/* User message hover actions (timestamp + edit + copy, shown to the left) */
-.user-hover-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  flex-shrink: 0;
-}
-
-.message.user:hover .user-hover-actions {
-  opacity: 1;
-}
-
-.user-hover-actions .msg-action-btn {
-  color: #9ca3af;
-}
-
-.user-hover-actions .msg-action-btn:hover {
-  color: #374151;
-  background: #f3f4f6;
-}
-
-.user-hover-timestamp {
-  font-size: 11px;
-  color: #9ca3af;
-  white-space: nowrap;
-  margin-right: 2px;
-}
-
-/* User message clickable for edit */
-.user-editable {
-  cursor: pointer;
-}
-
-.user-editable:hover {
-  opacity: 0.9;
 }
 
 /* Legacy - keep for compatibility */
@@ -1596,13 +1561,7 @@ input, select, textarea {
     opacity: 1;
   }
 
-  .user-hover-actions {
-    opacity: 0;
-  }
-
-  .message.user:hover .user-hover-actions {
-    opacity: 1;
-  }
+  /* User message actions: hide on desktop, show on hover */
 
   /* Remove old positioned buttons */
   .msg-copy-btn {
