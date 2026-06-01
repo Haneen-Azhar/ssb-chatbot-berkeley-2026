@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 // ─── In-app browser detection (runs before anything else) ──
@@ -308,6 +309,18 @@ function ChatAppInner() {
           // Load conversations from server
           const convos = await fetchConversationsFromServer(sess.access_token);
           setConversations(convos);
+          // Restore conversation from URL if present
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlConvoId = urlParams.get('c');
+          if (urlConvoId) {
+            const match = convos.find((c) => c.id === urlConvoId);
+            if (match) {
+              sessionIdRef.current = match.id;
+              setActiveConvoId(match.id);
+              setMessages(match.messages || []);
+              setChatHistory((match.messages || []).filter((m) => m.role === 'user' || m.role === 'assistant'));
+            }
+          }
           setView('chat');
         }
       } else if (response.status === 404) {
@@ -593,17 +606,26 @@ function ChatAppInner() {
     [activeConvoId]
   );
 
+  const pushConvoUrl = useCallback((id) => {
+    if (id) {
+      window.history.pushState(null, '', `/?c=${id}`);
+    } else {
+      window.history.pushState(null, '', '/');
+    }
+  }, []);
+
   const startNewChat = useCallback(() => {
     const newId = crypto.randomUUID();
     sessionIdRef.current = newId;
     setActiveConvoId(newId);
     setMessages([]);
     setChatHistory([]);
+    pushConvoUrl(null);
 
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
     }
-  }, [activeConvoId, messages, saveCurrentConversation]);
+  }, [activeConvoId, messages, saveCurrentConversation, pushConvoUrl]);
 
   const loadConversation = useCallback(
     (convo) => {
@@ -613,12 +635,13 @@ function ChatAppInner() {
       setChatHistory(
         (convo.messages || []).filter((m) => m.role === 'user' || m.role === 'assistant')
       );
+      pushConvoUrl(convo.id);
 
       if (window.innerWidth <= 768) {
         setSidebarOpen(false);
       }
     },
-    []
+    [pushConvoUrl]
   );
 
   const deleteConversation = useCallback(
@@ -633,9 +656,10 @@ function ChatAppInner() {
         setChatHistory([]);
         setActiveConvoId(null);
         sessionIdRef.current = crypto.randomUUID();
+        pushConvoUrl(null);
       }
     },
-    [activeConvoId]
+    [activeConvoId, pushConvoUrl]
   );
 
   // ─── Send message ─────────────────────────────────────
@@ -1320,7 +1344,9 @@ function ChatAppInner() {
               </svg>
             </button>
           </div>
-          <p className="input-hint">Press Enter to send, Shift+Enter for new line</p>
+          <p className="input-hint">
+            Press Enter to send, Shift+Enter for new line · <Link href="/privacy" style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Privacy</Link>
+          </p>
         </div>
       </main>
 
