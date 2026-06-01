@@ -396,12 +396,12 @@ export default function PrivacyPage() {
               concerns about how your information is handled, please contact us:
             </p>
             <p style={{ ...paragraphStyle, marginBottom: 0 }}>
-              <strong>Summer Springboard</strong><br />
+              <strong>Haneen Azhar</strong><br />
               Email:{' '}
-              <a href="mailto:alerts@summerspringboard.com" style={linkStyle}>
-                alerts@summerspringboard.com
+              <a href="mailto:haneen@uni.minerva.edu" style={linkStyle}>
+                haneen@uni.minerva.edu
               </a><br />
-              SSB 24/7 Helpline: +1 (858) 779-0555
+              Phone: (415) 888-0650
             </p>
           </section>
         </article>
