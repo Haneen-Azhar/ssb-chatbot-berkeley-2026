@@ -90,20 +90,17 @@ function renderMarkdownSafe(text) {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/`(.*?)`/g, '<code>$1</code>');
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  html = html.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item">$1</div>');
-  html = html.replace(/^- (.+)$/gm, '<div class="md-list-item">$1</div>');
-  html = html.replace(/^&bull; (.+)$/gm, '<div class="md-list-item">$1</div>');
-  // Strip any remaining unclosed markdown markers
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
+  html = html.replace(/^[-•]\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
+  // Strip unclosed markdown markers
   html = html.replace(/\*\*([^*]*)$/g, '<strong>$1</strong>');
   html = html.replace(/\*([^*]*)$/g, '<em>$1</em>');
   html = html.replace(/^#{1,3}\s*/gm, '');
   html = html.replace(/`([^`]*)$/g, '$1');
   html = html.replace(/\[([^\]]*)$/g, '$1');
   // Newlines
-  html = html.replace(/\n{2,}/g, '<span style="display:block;margin:10px 0"></span>');
+  html = html.replace(/\n{2,}/g, '<div style="margin:10px 0"></div>');
   html = html.replace(/\n/g, '<br>');
-  html = html.replace(/<br>(<div class="md-list-item">)/g, '$1');
-  html = html.replace(/(<\/div>)<br>/g, '$1');
   return html;
 }
 
@@ -123,20 +120,12 @@ function renderMarkdown(text) {
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
   );
-  html = html.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item">$1</div>');
-  html = html.replace(/^- (.+)$/gm, '<div class="md-list-item">$1</div>');
-  html = html.replace(
-    /^&bull; (.+)$/gm,
-    '<div class="md-list-item">$1</div>'
-  );
-  // Convert newlines: keep paragraph breaks but compact
-  html = html.replace(/\n{2,}/g, '<span style="display:block;margin:10px 0"></span>');
+  // List items: catch both start-of-line and after newlines
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
+  html = html.replace(/^[-•]\s+(.+)$/gm, '<div class="md-list-item">$1</div>');
+  // Convert newlines
+  html = html.replace(/\n{2,}/g, '<div style="margin:10px 0"></div>');
   html = html.replace(/\n/g, '<br>');
-  // Clean up spacing before/after block elements
-  html = html.replace(/<br>(<div class="md-list-item">)/g, '$1');
-  html = html.replace(/(<\/div>)<br>/g, '$1');
-  html = html.replace(/<span style="display:block;margin:6px 0"><\/span>(<div class="md-list-item">)/g, '$1');
-  html = html.replace(/(<\/div>)<span style="display:block;margin:6px 0"><\/span>/g, '$1');
   return html;
 }
 
