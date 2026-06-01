@@ -774,6 +774,16 @@ input, select, textarea {
   color: #003262;
 }
 
+/* Conversation title */
+.conversation-title {
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-align: center;
+  padding: 8px 0 20px;
+}
+
 /* Messages */
 .message {
   display: flex;
@@ -816,10 +826,10 @@ input, select, textarea {
 }
 
 .message.assistant .message-bubble {
-  background: #f3f4f6;
+  background: transparent;
   color: #1a1a1a;
-  border-top-left-radius: 4px;
-  transition: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 .message.user .message-bubble {
