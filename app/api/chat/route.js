@@ -5,6 +5,8 @@ import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
 import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
 import { logQuery, getCampusMemoryContext } from '@/lib/database';
+import { chatLimiter } from '@/lib/rateLimit';
+import { validateChatInput } from '@/lib/validation';
 
 let kbLoaded = false;
 
@@ -12,24 +14,29 @@ export async function POST(request) {
   const startTime = Date.now();
 
   try {
+    // Rate limit
+    const { limited } = chatLimiter(request);
+    if (limited) {
+      return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
+    }
+
     // Load knowledge base once
     if (!kbLoaded) {
       await loadKnowledgeBase();
       kbLoaded = true;
     }
 
-    // Optional auth — unauthenticated users can still chat
+    // Optional auth
     const user = await getUser(request);
 
-    // Parse request body
-    const { message, history, sessionId } = await request.json();
-
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
+    // Parse and validate
+    const body = await request.json();
+    const { valid, error: validationError } = validateChatInput(body);
+    if (!valid) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
+
+    const { message, history, sessionId } = body;
 
     // Run KB search and web search in parallel
     const useWebSearch = shouldTriggerSearch(message);

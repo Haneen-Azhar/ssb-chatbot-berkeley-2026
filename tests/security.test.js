@@ -114,14 +114,30 @@ describe('auth middleware safety', () => {
 // ─── Chat API validates message ──────────────────────────────────────────────
 
 describe('chat API validates message input', () => {
-  it('chat route validates message is a string', () => {
+  it('chat route imports validation', () => {
     const content = readFile('app/api/chat/route.js');
-    expect(content).toContain("typeof message !== 'string'");
+    expect(content).toContain('validateChatInput');
   });
 
-  it('stream route validates message is a string', () => {
+  it('stream route imports validation', () => {
     const content = readFile('app/api/chat/stream/route.js');
-    expect(content).toContain("typeof message !== 'string'");
+    expect(content).toContain('validateChatInput');
+  });
+
+  it('chat route has rate limiting', () => {
+    const content = readFile('app/api/chat/route.js');
+    expect(content).toContain('chatLimiter');
+  });
+
+  it('stream route has rate limiting', () => {
+    const content = readFile('app/api/chat/stream/route.js');
+    expect(content).toContain('chatLimiter');
+  });
+
+  it('validation module enforces max message length', () => {
+    const content = readFile('lib/validation.js');
+    expect(content).toContain('MAX_MESSAGE_LENGTH');
+    expect(content).toContain('too long');
   });
 });
 

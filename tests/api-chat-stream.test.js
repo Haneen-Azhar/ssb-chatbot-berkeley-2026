@@ -30,8 +30,17 @@ vi.mock('@/lib/database', () => ({
   getCampusMemoryContext: vi.fn().mockResolvedValue(''),
 }));
 
+vi.mock('@/lib/rateLimit', () => ({
+  chatLimiter: vi.fn().mockReturnValue({ limited: false, remaining: 10 }),
+}));
+
+vi.mock('@/lib/validation', () => ({
+  validateChatInput: vi.fn().mockReturnValue({ valid: true }),
+}));
+
 // ---- Imports ----
 import { POST } from '@/app/api/chat/stream/route';
+import { validateChatInput } from '@/lib/validation';
 import { getUser } from '@/lib/auth';
 import { getChatResponseStream } from '@/lib/claude';
 import { searchKnowledgeBase } from '@/lib/knowledgeBase';
@@ -72,6 +81,7 @@ describe('POST /api/chat/stream', () => {
   });
 
   it('returns 400 when message is missing', async () => {
+    validateChatInput.mockReturnValueOnce({ valid: false, error: 'Message is required' });
     const response = await POST(makeRequest({}));
     expect(response.status).toBe(400);
 
@@ -80,6 +90,7 @@ describe('POST /api/chat/stream', () => {
   });
 
   it('returns 400 when message is not a string', async () => {
+    validateChatInput.mockReturnValueOnce({ valid: false, error: 'Message is required' });
     const response = await POST(makeRequest({ message: 42 }));
     expect(response.status).toBe(400);
   });

@@ -30,6 +30,14 @@ vi.mock('@/lib/database', () => ({
   getCampusMemoryContext: vi.fn().mockResolvedValue(''),
 }));
 
+vi.mock('@/lib/rateLimit', () => ({
+  chatLimiter: vi.fn().mockReturnValue({ limited: false, remaining: 10 }),
+}));
+
+vi.mock('@/lib/validation', () => ({
+  validateChatInput: vi.fn().mockReturnValue({ valid: true }),
+}));
+
 // ---- Imports (after mocks) ----
 import { POST } from '@/app/api/chat/route';
 import { getUser } from '@/lib/auth';
@@ -37,6 +45,7 @@ import { getChatResponse } from '@/lib/claude';
 import { searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { buildRoleContext } from '@/lib/prompts';
 import { logQuery } from '@/lib/database';
+import { validateChatInput } from '@/lib/validation';
 
 // ---- Helpers ----
 function makeRequest(body) {
@@ -67,6 +76,7 @@ describe('POST /api/chat', () => {
   });
 
   it('returns 400 when message is missing', async () => {
+    validateChatInput.mockReturnValueOnce({ valid: false, error: 'Message is required' });
     const response = await POST(makeRequest({}));
     expect(response.status).toBe(400);
     const data = await response.json();
@@ -74,6 +84,7 @@ describe('POST /api/chat', () => {
   });
 
   it('returns 400 when message is not a string', async () => {
+    validateChatInput.mockReturnValueOnce({ valid: false, error: 'Message is required' });
     const response = await POST(makeRequest({ message: 123 }));
     expect(response.status).toBe(400);
     const data = await response.json();
@@ -81,6 +92,7 @@ describe('POST /api/chat', () => {
   });
 
   it('returns 400 when message is an empty string', async () => {
+    validateChatInput.mockReturnValueOnce({ valid: false, error: 'Message is required' });
     const response = await POST(makeRequest({ message: '' }));
     expect(response.status).toBe(400);
   });
