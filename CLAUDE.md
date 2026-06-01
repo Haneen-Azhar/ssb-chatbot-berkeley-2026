@@ -6,11 +6,29 @@ An AI chatbot for Summer Springboard camp staff at UC Berkeley. Staff sign in, a
 
 ## Critical rules
 
-- **Run `npm test` before every commit.** 386+ tests must pass. No exceptions.
+- **NEVER push directly to main.** Always create a branch, push to the branch, open a PR, let CI pass, then merge. No exceptions. Direct pushes bypass the CI pipeline and have caused production outages.
+- **NEVER use `sed` on source files.** Use the Edit tool with exact string matching. `sed` is a blunt instrument that can break JSX structure in ways that compile but crash at runtime.
+- **Run `npm test` AND `npm run build` before every commit.** All tests must pass. No exceptions.
+- **Test locally in a browser before pushing.** Build passes ≠ works. Start `npm run dev`, open localhost:3000, verify the page loads and chat works.
 - **Never hardcode API keys.** Use environment variables only. The CI pipeline scans for secrets.
 - **Never modify the knowledge base files** without understanding the source mapping in `lib/knowledgeBase.js`.
-- **The main chat UI is one file:** `app/page.js` (~1400 lines). It's a single React client component. Don't split it into separate files without a plan.
+- **The main chat UI is one file:** `app/page.js` (~1800 lines). It's a single React client component. Don't split it into separate files without a plan.
 - **Branch protection is on.** Both CI checks (Test & Build + Security Audit) must pass before code reaches main.
+
+## Git workflow (mandatory)
+
+```
+git checkout -b feature/description    # create branch
+# make changes
+npm test                               # run tests
+npm run build                          # verify build
+npm run dev                            # test in browser
+git add -A && git commit -m "..."      # commit
+git push origin feature/description    # push branch
+gh pr create --title "..." --body "..."  # open PR
+# wait for CI to pass
+gh pr merge                            # merge after CI green
+```
 
 ## How to run
 
