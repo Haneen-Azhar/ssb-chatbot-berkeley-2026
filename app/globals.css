@@ -821,9 +821,10 @@ input, select, textarea {
 }
 
 .message.user .message-bubble {
-  background: #003262;
-  color: white;
-  border-top-right-radius: 4px;
+  background: #f3f0ea;
+  color: #1a1a1a;
+  border-radius: 20px;
+  display: inline-block;
 }
 
 /* Markdown in bot messages */
@@ -868,7 +869,7 @@ input, select, textarea {
 }
 
 .message.user .message-bubble a {
-  color: #93c5fd;
+  color: #003262;
   text-decoration: underline;
 }
 
