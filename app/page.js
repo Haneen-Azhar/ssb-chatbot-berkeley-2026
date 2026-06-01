@@ -79,6 +79,33 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+// Streaming-safe markdown: strips unclosed markers instead of leaving raw ** ## etc
+function renderMarkdownSafe(text) {
+  let html = escapeHtml(text);
+  // Render complete markdown pairs
+  html = html.replace(/^### (.+)$/gm, '<strong style="font-size:15px;display:block;margin:8px 0 2px">$1</strong>');
+  html = html.replace(/^## (.+)$/gm, '<strong style="font-size:16px;display:block;margin:10px 0 2px">$1</strong>');
+  html = html.replace(/^# (.+)$/gm, '<strong style="font-size:17px;display:block;margin:12px 0 4px">$1</strong>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  html = html.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item">$1</div>');
+  html = html.replace(/^- (.+)$/gm, '<div class="md-list-item">$1</div>');
+  html = html.replace(/^&bull; (.+)$/gm, '<div class="md-list-item">$1</div>');
+  // Strip any remaining unclosed markdown markers
+  html = html.replace(/\*\*([^*]*)$/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]*)$/g, '<em>$1</em>');
+  html = html.replace(/^#{1,3}\s*/gm, '');
+  html = html.replace(/`([^`]*)$/g, '$1');
+  html = html.replace(/\[([^\]]*)$/g, '$1');
+  // Newlines
+  html = html.replace(/\n{2,}/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+  html = html.replace(/(<br>){3,}/g, '<br><br>');
+  return html;
+}
+
 function renderMarkdown(text) {
   let html = escapeHtml(text);
   html = html.replace(/^### (.+)$/gm, '<strong style="font-size:15px;display:block;margin:8px 0 2px">$1</strong>');
@@ -962,15 +989,16 @@ function ChatAppInner() {
         let displayedLen = 0;
         let streamDone = false;
 
-        // Character-by-character reveal loop - plain text during streaming, markdown on finish
+        // Character-by-character reveal with live markdown
         const CHARS_PER_FRAME = 4;
+        let lastRendered = '';
         function revealLoop() {
           if (displayedLen < fullResponse.length) {
             displayedLen = Math.min(displayedLen + CHARS_PER_FRAME, fullResponse.length);
-            if (streamBubble) {
-              // Use textContent during streaming - no markdown flickering
-              streamBubble.textContent = fullResponse.slice(0, displayedLen);
-              streamBubble.style.whiteSpace = 'pre-wrap';
+            const slice = fullResponse.slice(0, displayedLen);
+            if (streamBubble && slice !== lastRendered) {
+              lastRendered = slice;
+              streamBubble.innerHTML = renderMarkdownSafe(slice);
             }
             const area = document.querySelector('.messages-area');
             if (area) area.scrollTop = area.scrollHeight;
@@ -978,9 +1006,7 @@ function ChatAppInner() {
           if (!streamDone || displayedLen < fullResponse.length) {
             requestAnimationFrame(revealLoop);
           } else {
-            // Final render: switch to markdown
             if (streamBubble) {
-              streamBubble.style.whiteSpace = '';
               streamBubble.innerHTML = renderMarkdown(fullResponse);
             }
           }
