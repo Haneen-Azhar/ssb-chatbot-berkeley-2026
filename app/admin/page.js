@@ -705,7 +705,7 @@ export default function AdminPage() {
         {/* Topics */}
         <section className={styles.dashboardSection}>
           <h2 className={styles.sectionHeader}>Topics</h2>
-          <div className={styles.tableWrap}>
+          <div className={styles.tableWrap} style={{ maxHeight: '400px', overflowY: 'auto' }}>
             <table className={styles.dataTable}>
               <thead>
                 <tr>
