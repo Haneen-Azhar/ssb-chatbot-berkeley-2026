@@ -55,7 +55,7 @@ describe('CI/CD Pipeline', () => {
 
   it('workflow uses Node.js 20', () => {
     const content = fs.readFileSync(workflowPath, 'utf-8');
-    expect(content).toContain("node-version: '20'");
+    expect(content).toContain("node-version: '22'");
   });
 
   it('workflow has timeout to prevent hanging', () => {
