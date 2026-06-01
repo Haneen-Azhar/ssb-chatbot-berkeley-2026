@@ -100,9 +100,8 @@ function renderMarkdownSafe(text) {
   html = html.replace(/`([^`]*)$/g, '$1');
   html = html.replace(/\[([^\]]*)$/g, '$1');
   // Newlines
-  html = html.replace(/\n{2,}/g, '<br><br>');
+  html = html.replace(/\n{2,}/g, '<span style="display:block;margin:6px 0"></span>');
   html = html.replace(/\n/g, '<br>');
-  html = html.replace(/(<br>){3,}/g, '<br><br>');
   return html;
 }
 
@@ -127,10 +126,9 @@ function renderMarkdown(text) {
     /^&bull; (.+)$/gm,
     '<div class="md-list-item">$1</div>'
   );
-  // Convert newlines: single break for all
-  html = html.replace(/\n{2,}/g, '<br>');
+  // Convert newlines: keep paragraph breaks but compact
+  html = html.replace(/\n{2,}/g, '<span style="display:block;margin:6px 0"></span>');
   html = html.replace(/\n/g, '<br>');
-  html = html.replace(/(<br>){2,}/g, '<br>');
   return html;
 }
 
