@@ -45,7 +45,6 @@ function exportConversation(messages, botName) {
   URL.revokeObjectURL(url);
 }
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 // ─── In-app browser detection (runs before anything else) ──
