@@ -1,11 +1,15 @@
 import { getUser } from '@/lib/auth';
-import { getChatResponseStream } from '@/lib/claude';
 import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
 import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
 import { logQuery, getCampusMemoryContext } from '@/lib/database';
 import { chatLimiter } from '@/lib/rateLimit';
 import { validateChatInput } from '@/lib/validation';
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 let kbLoaded = false;
 
@@ -13,7 +17,6 @@ export async function POST(request) {
   const startTime = Date.now();
 
   try {
-    // Rate limit
     const { limited } = chatLimiter(request);
     if (limited) {
       return new Response(
@@ -22,16 +25,13 @@ export async function POST(request) {
       );
     }
 
-    // Load knowledge base once
     if (!kbLoaded) {
       await loadKnowledgeBase();
       kbLoaded = true;
     }
 
-    // Optional auth
     const user = await getUser(request);
 
-    // Parse and validate
     const body = await request.json();
     const { valid, error: validationError } = validateChatInput(body);
     if (!valid) {
@@ -43,19 +43,16 @@ export async function POST(request) {
 
     const { message, history, sessionId } = body;
 
-    // Run KB search and web search in parallel
     const useWebSearch = shouldTriggerSearch(message);
     const [kbResults, searchResults] = await Promise.all([
       Promise.resolve(searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
     ]);
 
-    // Build prompts with campus memory context
     const campusContext = await getCampusMemoryContext();
     const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
 
-    // Build sources from KB results
     const sources = kbResults.map((r) => ({
       file: r.file,
       header: r.header,
@@ -64,8 +61,8 @@ export async function POST(request) {
       sourceLabel: r.sourceLabel,
     }));
 
-    // Get streaming response from Claude
-    const claudeStream = await getChatResponseStream(systemPrompt, userPrompt, history || []);
+    const messages = [...(history || [])];
+    messages.push({ role: 'user', content: userPrompt });
 
     const encoder = new TextEncoder();
     let fullResponse = '';
@@ -73,37 +70,54 @@ export async function POST(request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Send sources event first
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`)
           );
 
-          // Wire up Claude stream events
-          claudeStream.on('text', (text) => {
-            fullResponse += text;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ type: 'text', text })}\n\n`)
-            );
+          const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 8192,
+            temperature: 0.7,
+            stream: true,
+            system: [
+              {
+                type: 'text',
+                text: systemPrompt,
+                cache_control: { type: 'ephemeral' },
+              },
+            ],
+            messages,
           });
 
-          // Wait for the stream to complete
-          const finalMessage = await claudeStream.finalMessage();
+          let inputTokens = 0;
+          let outputTokens = 0;
 
-          const usage = {
-            inputTokens: finalMessage.usage?.input_tokens,
-            outputTokens: finalMessage.usage?.output_tokens,
-          };
+          for await (const event of response) {
+            if (
+              event.type === 'content_block_delta' &&
+              event.delta?.type === 'text_delta'
+            ) {
+              const text = event.delta.text;
+              fullResponse += text;
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ type: 'text', text })}\n\n`)
+              );
+            } else if (event.type === 'message_delta' && event.usage) {
+              outputTokens = event.usage.output_tokens || 0;
+            } else if (event.type === 'message_start' && event.message?.usage) {
+              inputTokens = event.message.usage.input_tokens || 0;
+            }
+          }
 
+          const usage = { inputTokens, outputTokens };
           const responseTimeMs = Date.now() - startTime;
 
-          // Send done event
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ type: 'done', usage, responseTimeMs })}\n\n`)
           );
 
           controller.close();
 
-          // Log query async after stream ends
           if (user) {
             logQuery({
               userId: user.id,
@@ -120,10 +134,16 @@ export async function POST(request) {
           }
         } catch (error) {
           console.error('Stream error:', error);
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: 'error', error: 'Stream interrupted' })}\n\n`)
-          );
-          controller.close();
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: 'error', error: error.message || 'Stream interrupted' })}\n\n`
+              )
+            );
+            controller.close();
+          } catch {
+            // controller already closed
+          }
         }
       },
     });
@@ -132,7 +152,7 @@ export async function POST(request) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   } catch (error) {
