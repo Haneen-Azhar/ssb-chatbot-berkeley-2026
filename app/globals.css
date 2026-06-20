@@ -1474,11 +1474,6 @@ input, select, textarea {
     width: 44px;
     height: 44px;
   }
-
-  .chat-main {
-    height: 100vh;
-    height: 100dvh;
-  }
 }
 
 /* ─── Desktop overrides (min-width: 769px) ──────────── */
