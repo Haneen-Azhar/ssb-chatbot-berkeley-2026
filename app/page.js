@@ -1020,6 +1020,8 @@ function ChatAppInner() {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
                   fullResponse += data.text;
+                } else if (data.type === 'error') {
+                  fullResponse = fullResponse || `Sorry, something went wrong. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
                 }
               } catch (e) {
                 console.error('JSON parse error:', e);
@@ -1029,6 +1031,11 @@ function ChatAppInner() {
         }
 
         streamDone = true;
+
+        if (!fullResponse) {
+          fullResponse = `Sorry, I couldn't generate a response. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
+        }
+
         // Wait for reveal loop to finish
         while (displayedLen < fullResponse.length) {
           await new Promise((r) => requestAnimationFrame(r));

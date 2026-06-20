@@ -8,7 +8,9 @@ import { logQuery, getCampusMemoryContext } from '@/lib/database';
 import { chatLimiter } from '@/lib/rateLimit';
 import { validateChatInput } from '@/lib/validation';
 
-let kbLoaded = false;
+export const maxDuration = 60;
+
+let kbLoadPromise = null;
 
 export async function POST(request) {
   const startTime = Date.now();
@@ -20,11 +22,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 
-    // Load knowledge base once
-    if (!kbLoaded) {
-      await loadKnowledgeBase();
-      kbLoaded = true;
+    if (!kbLoadPromise) {
+      kbLoadPromise = loadKnowledgeBase();
     }
+    await kbLoadPromise;
 
     // Optional auth
     const user = await getUser(request);
@@ -45,8 +46,10 @@ export async function POST(request) {
       useWebSearch ? webSearch(message) : Promise.resolve(null),
     ]);
 
-    // Build system prompt with role context and campus memory
-    const campusContext = await getCampusMemoryContext();
+    const campusContext = await Promise.race([
+      getCampusMemoryContext(),
+      new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
+    ]);
     const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
 
     const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
