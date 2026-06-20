@@ -960,20 +960,15 @@ function ChatAppInner() {
 
         setIsTyping(false);
 
+        const streamId = 'stream-' + Date.now();
         const assistantMessage = {
           role: 'assistant',
           content: '',
           timestamp: new Date().toISOString(),
+          streamId,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
-
-        // Wait one frame for React to render the empty assistant bubble
-        await new Promise((r) => requestAnimationFrame(r));
-
-        // Get direct DOM reference to the last message bubble for smooth streaming
-        const bubbleEls = document.querySelectorAll('.message.assistant .message-bubble');
-        const streamBubble = bubbleEls[bubbleEls.length - 1];
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -981,11 +976,14 @@ function ChatAppInner() {
         let fullResponse = '';
         let displayedLen = 0;
         let streamDone = false;
+        let streamBubble = null;
 
-        // Character-by-character reveal with live markdown
         const CHARS_PER_FRAME = 4;
         let lastRendered = '';
         function revealLoop() {
+          if (!streamBubble) {
+            streamBubble = document.querySelector(`[data-stream-id="${streamId}"]`);
+          }
           if (displayedLen < fullResponse.length) {
             displayedLen = Math.min(displayedLen + CHARS_PER_FRAME, fullResponse.length);
             const slice = fullResponse.slice(0, displayedLen);
@@ -1617,6 +1615,7 @@ function ChatAppInner() {
                           <div className="message-bubble-wrapper">
                             <div
                               className="message-bubble"
+                              data-stream-id={msg.streamId || undefined}
                               dangerouslySetInnerHTML={{
                                 __html: renderMarkdown(msg.content),
                               }}
