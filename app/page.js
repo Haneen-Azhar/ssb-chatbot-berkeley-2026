@@ -316,6 +316,7 @@ function ChatAppInner() {
   const [chatHistory, setChatHistory] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   // Sidebar / conversations
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -341,6 +342,7 @@ function ChatAppInner() {
   const sessionIdRef = useRef(null);
   const abortRef = useRef(null);
   const messagesAreaRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
 
   // UX feature state
   const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
@@ -444,10 +446,14 @@ function ChatAppInner() {
 
     async function checkAuth() {
       try {
+        const authPromise = supabase.auth.getSession();
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth timeout')), 8000)
+        );
         const {
           data: { session: sess },
           error,
-        } = await supabase.auth.getSession();
+        } = await Promise.race([authPromise, timeout]);
 
         if (ignore) return;
         if (error) {
@@ -474,9 +480,11 @@ function ChatAppInner() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, sess) => {
       if (ignore) return;
-      if (event === 'SIGNED_IN' && sess) {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && sess) {
         setSession(sess);
-        await fetchProfile(sess);
+        if (event === 'SIGNED_IN') {
+          await fetchProfile(sess);
+        }
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setUserProfile(null);
@@ -486,13 +494,13 @@ function ChatAppInner() {
 
     return () => {
       ignore = true;
-      ignore = true;
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
 
   // ─── Auto-scroll ───────────────────────────────────────
   const scrollToBottom = useCallback(() => {
+    if (userScrolledUpRef.current) return;
     requestAnimationFrame(() => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
@@ -517,17 +525,34 @@ function ChatAppInner() {
     };
   }, []);
 
+  // ─── Handle app backgrounding/foregrounding ───────────
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && messagesAreaRef.current) {
+        requestAnimationFrame(() => {
+          if (!userScrolledUpRef.current && messagesAreaRef.current) {
+            messagesAreaRef.current.scrollTop = messagesAreaRef.current.scrollHeight;
+          }
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
   // ─── Scroll position tracking ─────────────────────────
   const handleMessagesScroll = useCallback(() => {
     const el = messagesAreaRef.current;
     if (!el) return;
     const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
+    userScrolledUpRef.current = !atBottom;
     setShowScrollBtn(!atBottom);
   }, []);
 
   const scrollToBottomSmooth = useCallback(() => {
     const el = messagesAreaRef.current;
     if (el) {
+      userScrolledUpRef.current = false;
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
     }
   }, []);
@@ -573,6 +598,7 @@ function ChatAppInner() {
       abortRef.current = null;
     }
     setIsTyping(false);
+    setIsStreaming(false);
   }, []);
 
   // ─── Regenerate last response ─────────────────────────
@@ -656,9 +682,13 @@ function ChatAppInner() {
   const handleGoogleSignIn = useCallback(async () => {
     if (!supabase) return;
     try {
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin },
+        options: {
+          redirectTo: window.location.origin,
+          ...(isPWA && { skipBrowserRedirect: false }),
+        },
       });
       if (error) console.error('Google sign-in error:', error);
     } catch (err) {
@@ -866,9 +896,10 @@ function ChatAppInner() {
     (convo) => {
       sessionIdRef.current = convo.id;
       setActiveConvoId(convo.id);
-      setMessages(convo.messages || []);
+      const msgs = (convo.messages || []).slice(-100);
+      setMessages(msgs);
       setChatHistory(
-        (convo.messages || []).filter((m) => m.role === 'user' || m.role === 'assistant')
+        msgs.filter((m) => m.role === 'user' || m.role === 'assistant')
       );
       pushConvoUrl(convo.id);
 
@@ -901,9 +932,8 @@ function ChatAppInner() {
   const sendMessage = useCallback(
     async (overrideText) => {
       const text = (overrideText || inputValue).trim();
-      if (!text || isTyping) return;
+      if (!text || isTyping || isStreaming) return;
 
-      // Haptic feedback on mobile
       if (navigator.vibrate) navigator.vibrate(10);
 
       if (!session) {
@@ -911,7 +941,6 @@ function ChatAppInner() {
         return;
       }
 
-      // If no active convo, create one
       if (!activeConvoId) {
         const newId = sessionIdRef.current || crypto.randomUUID();
         sessionIdRef.current = newId;
@@ -930,6 +959,8 @@ function ChatAppInner() {
         inputRef.current.style.height = 'auto';
       }
       setIsTyping(true);
+      setIsStreaming(true);
+      userScrolledUpRef.current = false;
 
       const recentHistory = chatHistory.slice(-20).map((msg) => ({
         role: msg.role,
@@ -955,10 +986,11 @@ function ChatAppInner() {
         });
 
         if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error('rate_limited');
+          }
           throw new Error(`Server returned ${response.status}`);
         }
-
-        setIsTyping(false);
 
         const streamId = 'stream-' + Date.now();
         const assistantMessage = {
@@ -977,9 +1009,14 @@ function ChatAppInner() {
         let displayedLen = 0;
         let streamDone = false;
         let streamBubble = null;
+        let firstTokenReceived = false;
+        let lastSyncLen = 0;
 
         const CHARS_PER_FRAME = 4;
+        const SYNC_INTERVAL = 200;
         let lastRendered = '';
+        let revealResolve = null;
+
         function revealLoop() {
           if (!streamBubble) {
             streamBubble = document.querySelector(`[data-stream-id="${streamId}"]`);
@@ -991,8 +1028,10 @@ function ChatAppInner() {
               lastRendered = slice;
               streamBubble.innerHTML = renderMarkdownSafe(slice);
             }
-            const area = document.querySelector('.messages-area');
-            if (area) area.scrollTop = area.scrollHeight;
+            if (!userScrolledUpRef.current) {
+              const area = messagesAreaRef.current;
+              if (area) area.scrollTop = area.scrollHeight;
+            }
           }
           if (!streamDone || displayedLen < fullResponse.length) {
             requestAnimationFrame(revealLoop);
@@ -1000,9 +1039,25 @@ function ChatAppInner() {
             if (streamBubble) {
               streamBubble.innerHTML = renderMarkdown(fullResponse);
             }
+            if (revealResolve) revealResolve();
           }
         }
         requestAnimationFrame(revealLoop);
+
+        const syncInterval = setInterval(() => {
+          if (fullResponse.length > lastSyncLen) {
+            lastSyncLen = fullResponse.length;
+            const snapshot = fullResponse;
+            setMessages((prev) => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              if (last && last.streamId === streamId) {
+                updated[updated.length - 1] = { ...last, content: snapshot };
+              }
+              return updated;
+            });
+          }
+        }, SYNC_INTERVAL);
 
         while (true) {
           const { done, value } = await reader.read();
@@ -1017,6 +1072,10 @@ function ChatAppInner() {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
+                  if (!firstTokenReceived) {
+                    firstTokenReceived = true;
+                    setIsTyping(false);
+                  }
                   fullResponse += data.text;
                 } else if (data.type === 'error') {
                   fullResponse = fullResponse || `Sorry, something went wrong. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
@@ -1029,95 +1088,102 @@ function ChatAppInner() {
         }
 
         streamDone = true;
+        clearInterval(syncInterval);
+
+        if (!firstTokenReceived) {
+          setIsTyping(false);
+        }
 
         if (!fullResponse) {
           fullResponse = `Sorry, I couldn't generate a response. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
         }
 
-        // Wait for reveal loop to finish
-        while (displayedLen < fullResponse.length) {
-          await new Promise((r) => requestAnimationFrame(r));
-        }
+        await new Promise((resolve) => {
+          revealResolve = resolve;
+          if (displayedLen >= fullResponse.length) resolve();
+        });
 
-        // Sync final content back to React state (one render, not hundreds)
         setMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            content: fullResponse,
-          };
+          const last = updated[updated.length - 1];
+          if (last && last.streamId === streamId) {
+            updated[updated.length - 1] = { ...last, content: fullResponse };
+          }
           return updated;
         });
 
         abortRef.current = null;
+        setIsStreaming(false);
 
-        // Update history
-        const finalUserMsg = userMessage;
-        const finalAssistantMsg = {
+        setChatHistory((prev) => [...prev, userMessage, {
           role: 'assistant',
           content: fullResponse,
           timestamp: new Date().toISOString(),
-        };
-        setChatHistory((prev) => [...prev, finalUserMsg, finalAssistantMsg]);
+        }]);
 
-        // Save conversation to localStorage
-        setMessages((currentMsgs) => {
-          // Use a timeout so state is settled
-          setTimeout(() => {
-            const convoId = sessionIdRef.current;
+        const convoId = sessionIdRef.current;
+        setTimeout(() => {
+          setMessages((currentMsgs) => {
             setConversations((prevConvos) => {
               const existing = prevConvos.find((c) => c.id === convoId);
-              let updated;
               if (existing) {
-                updated = prevConvos.map((c) =>
+                return prevConvos.map((c) =>
                   c.id === convoId
                     ? { ...c, messages: currentMsgs, updatedAt: new Date().toISOString() }
                     : c
                 );
-              } else {
-                updated = [
-                  {
-                    id: convoId,
-                    preview: text.slice(0, 60),
-                    messages: currentMsgs,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  },
-                  ...prevConvos,
-                ];
               }
-              // Persisted via Supabase query logging
-              return updated;
+              return [
+                {
+                  id: convoId,
+                  preview: text.slice(0, 60),
+                  messages: currentMsgs,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                },
+                ...prevConvos,
+              ];
             });
-          }, 100);
-          return currentMsgs;
-        });
+            return currentMsgs;
+          });
+        }, 100);
 
-        // Re-focus input on desktop
         if (window.innerWidth > 768 && inputRef.current) {
           inputRef.current.focus();
         }
       } catch (error) {
         abortRef.current = null;
-        // If aborted by user, keep partial response and stop cleanly
+
         if (error.name === 'AbortError') {
           setIsTyping(false);
+          setIsStreaming(false);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last && last.role === 'assistant' && !last.content) {
+              return prev.slice(0, -1);
+            }
+            return prev;
+          });
           return;
         }
 
         console.error('Chat error:', error);
         setIsTyping(false);
+        setIsStreaming(false);
 
-        const errorMessage = {
+        const isRateLimit = error.message === 'rate_limited';
+        const errorContent = isRateLimit
+          ? `You're sending messages too quickly. Please wait a moment and try again.`
+          : `I'm having trouble connecting right now. Please try again in a few seconds.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
+
+        setMessages((prev) => [...prev, {
           role: 'assistant',
-          content: `I'm having trouble connecting to the server.\n\n**To fix this:**\n1. Make sure the backend is running\n2. Refresh this page\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`,
+          content: errorContent,
           timestamp: new Date().toISOString(),
-        };
-
-        setMessages((prev) => [...prev, errorMessage]);
+        }]);
       }
     },
-    [inputValue, isTyping, session, chatHistory, activeConvoId]
+    [inputValue, isTyping, isStreaming, session, chatHistory, activeConvoId]
   );
 
   // Keep ref in sync so handleRegenerate can call sendMessage
@@ -1565,7 +1631,7 @@ function ChatAppInner() {
           {/* Offline banner */}
           {!isOnline && (
             <div className="offline-banner">
-              You&apos;re offline. Messages will send when you reconnect.
+              You&apos;re offline. Reconnect to send messages.
             </div>
           )}
 
@@ -1753,7 +1819,7 @@ function ChatAppInner() {
               }}
               onKeyDown={handleKeyDown}
             />
-            {isTyping ? (
+            {isTyping || isStreaming ? (
               <button
                 className="stop-btn"
                 onClick={handleStopGenerating}
