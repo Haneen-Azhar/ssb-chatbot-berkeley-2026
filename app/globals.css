@@ -1462,6 +1462,25 @@ input, select, textarea {
   color: #003262;
 }
 
+/* ─── Mobile touch targets & fixes ──────────────────── */
+@media (max-width: 768px) {
+  .msg-action-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .convo-delete {
+    width: 44px;
+    height: 44px;
+  }
+
+  .chat-main {
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
 /* ─── Desktop overrides (min-width: 769px) ──────────── */
 @media (min-width: 769px) {
   .sidebar {
