@@ -30,9 +30,6 @@ export async function POST(request) {
     if (!kbLoadPromise) {
       kbLoadPromise = loadKnowledgeBase();
     }
-    await kbLoadPromise;
-
-    const user = await getUser(request);
 
     const body = await request.json();
     const { valid, error: validationError } = validateChatInput(body);
@@ -46,17 +43,19 @@ export async function POST(request) {
     const { message, history, sessionId } = body;
 
     const useWebSearch = shouldTriggerSearch(message);
-    const [kbResults, searchResults] = await Promise.all([
-      Promise.resolve(searchKnowledgeBase(message)),
+    const [, user, kbResults, searchResults, campusContext] = await Promise.all([
+      kbLoadPromise,
+      getUser(request),
+      kbLoadPromise.then(() => searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
+      Promise.race([
+        getCampusMemoryContext(),
+        new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
+      ]),
     ]);
 
-    const campusContext = await Promise.race([
-      getCampusMemoryContext(),
-      new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
-    ]);
     const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
-    const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
+    const userPrompt = buildUserPrompt(message, kbResults, searchResults);
 
     const sources = kbResults.map((r) => ({
       file: r.file,
@@ -81,8 +80,8 @@ export async function POST(request) {
 
           const response = await anthropic.messages.create({
             model: 'claude-sonnet-4-6',
-            max_tokens: 8192,
-            temperature: 0.7,
+            max_tokens: 4096,
+            temperature: 0.3,
             stream: true,
             system: [
               {

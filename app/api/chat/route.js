@@ -25,12 +25,7 @@ export async function POST(request) {
     if (!kbLoadPromise) {
       kbLoadPromise = loadKnowledgeBase();
     }
-    await kbLoadPromise;
 
-    // Optional auth
-    const user = await getUser(request);
-
-    // Parse and validate
     const body = await request.json();
     const { valid, error: validationError } = validateChatInput(body);
     if (!valid) {
@@ -39,20 +34,21 @@ export async function POST(request) {
 
     const { message, history, sessionId } = body;
 
-    // Run KB search and web search in parallel
     const useWebSearch = shouldTriggerSearch(message);
-    const [kbResults, searchResults] = await Promise.all([
-      Promise.resolve(searchKnowledgeBase(message)),
+    const [, user, kbResults, searchResults, campusContext] = await Promise.all([
+      kbLoadPromise,
+      getUser(request),
+      kbLoadPromise.then(() => searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
+      Promise.race([
+        getCampusMemoryContext(),
+        new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
+      ]),
     ]);
 
-    const campusContext = await Promise.race([
-      getCampusMemoryContext(),
-      new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
-    ]);
     const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
 
-    const userPrompt = buildUserPrompt(message, kbResults, searchResults, history);
+    const userPrompt = buildUserPrompt(message, kbResults, searchResults);
 
     // Get Claude response
     const result = await getChatResponse(systemPrompt, userPrompt, history || []);
