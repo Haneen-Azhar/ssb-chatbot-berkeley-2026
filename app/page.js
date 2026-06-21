@@ -962,15 +962,15 @@ function ChatAppInner() {
       setIsStreaming(true);
       userScrolledUpRef.current = false;
 
-      const recentHistory = chatHistory.slice(-20).map((msg) => ({
+      const recentHistory = chatHistory.slice(-10).map((msg) => ({
         role: msg.role,
-        content: msg.content,
+        content: msg.role === 'user' ? msg.content : msg.content.slice(0, 500),
       }));
 
       try {
         const controller = new AbortController();
         abortRef.current = controller;
-        const clientTimeout = setTimeout(() => controller.abort(), 55000);
+        const clientTimeout = setTimeout(() => controller.abort(), 30000);
 
         const response = await fetch('/api/chat/stream', {
           method: 'POST',
@@ -1686,6 +1686,10 @@ function ChatAppInner() {
               /* Message list */
               <>
                 {messages.map((msg, idx) => {
+                  if (msg.role === 'assistant' && !msg.content && (isTyping || isStreaming)) {
+                    return null;
+                  }
+
                   const isLastAssistant =
                     msg.role === 'assistant' &&
                     idx === messages.length - 1 &&
