@@ -51,7 +51,7 @@ export async function POST(request) {
       casual ? Promise.resolve([]) : kbLoadPromise.then(() => searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
       casual ? Promise.resolve('') : Promise.race([
-        getCampusMemoryContext(),
+        getCampusMemoryContext(message),
         new Promise((resolve) => setTimeout(() => resolve(''), 2000)),
       ]),
     ]);
