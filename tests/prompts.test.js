@@ -93,79 +93,27 @@ describe('buildUserPrompt', () => {
     expect(result).toContain('https://news.berkeley.edu');
   });
 
-  it('includes conversation history when provided and truncates to recent', () => {
-    // buildUserPrompt only includes history when length > 2, and slices to last 6
-    const history = [
-      { role: 'user', content: 'msg 1' },
-      { role: 'assistant', content: 'reply 1' },
-      { role: 'user', content: 'msg 2' },
-      { role: 'assistant', content: 'reply 2' },
-      { role: 'user', content: 'msg 3' },
-      { role: 'assistant', content: 'reply 3' },
-      { role: 'user', content: 'msg 4' },
-      { role: 'assistant', content: 'reply 4' },
-    ];
-    const result = buildUserPrompt('follow up', [], null, history);
-    expect(result).toContain('CONVERSATION CONTEXT');
-    // Should contain recent messages (last 6), not all 8
-    expect(result).toContain('msg 3');
-    expect(result).toContain('msg 4');
-    // Should NOT contain very old messages outside the 6-message window
-    expect(result).not.toContain('msg 1');
-  });
-
-  it('does not include conversation context when history has 2 or fewer messages', () => {
-    const shortHistory = [
-      { role: 'user', content: 'hi' },
-      { role: 'assistant', content: 'hello' },
-    ];
-    const result = buildUserPrompt('question', [], null, shortHistory);
-    expect(result).not.toContain('CONVERSATION CONTEXT');
-  });
-
-  it('returns just the query when no context/search/history', () => {
+  it('returns just the query when no context or search', () => {
     const result = buildUserPrompt('simple question');
     expect(result).toBe('**CURRENT USER QUERY:**\nsimple question');
   });
 
   it('returns just the query with empty arrays', () => {
-    const result = buildUserPrompt('simple question', [], null, []);
+    const result = buildUserPrompt('simple question', [], null);
     expect(result).toBe('**CURRENT USER QUERY:**\nsimple question');
-  });
-
-  it('truncates long conversation messages to 150 chars with ellipsis', () => {
-    const longContent = 'A'.repeat(200);
-    const history = [
-      { role: 'user', content: 'a' },
-      { role: 'assistant', content: 'b' },
-      { role: 'user', content: longContent },
-    ];
-    const result = buildUserPrompt('next', [], null, history);
-    expect(result).toContain('...');
-    // The preview should be 150 chars of 'A'
-    expect(result).toContain('A'.repeat(150));
-    expect(result).not.toContain('A'.repeat(200));
   });
 });
 
 // ─── shouldTriggerSearch ─────────────────────────────────────────────────────
 
 describe('shouldTriggerSearch', () => {
-  describe('returns true for trigger words', () => {
+  describe('returns true for explicit search triggers', () => {
     const triggerQueries = [
-      ['latest campus news', 'latest'],
-      ['current weather in Berkeley', 'current'],
-      ['what events are happening on campus', 'campus + event'],
-      ['berkeley dining options', 'berkeley'],
-      ['any news about the program', 'news'],
-      ['what happened today', 'today'],
       ['search for emergency procedures', 'search for'],
-      ['find me the schedule', 'find'],
       ['look up the contact info', 'look up'],
       ["what's new this week", "what's new"],
-      ['any updates from SSB', 'update'],
-      ['2026 program details', '2026'],
-      ['what is happening now', 'now + happening'],
+      ['latest news about the program', 'latest news'],
+      ['current news updates', 'current news'],
     ];
 
     triggerQueries.forEach(([query, reason]) => {
@@ -175,13 +123,17 @@ describe('shouldTriggerSearch', () => {
     });
   });
 
-  describe('returns false for generic policy questions', () => {
+  describe('returns false for KB-answerable questions', () => {
     const nonTriggerQueries = [
       'what is the staff ratio',
       'how to file incident report',
       'tell me about the code of conduct',
       'who is the program director',
       'what are the bed check procedures',
+      'latest campus updates',
+      'find me the schedule',
+      'berkeley dining options',
+      'what events are happening on campus',
     ];
 
     nonTriggerQueries.forEach((query) => {
@@ -192,8 +144,8 @@ describe('shouldTriggerSearch', () => {
   });
 
   it('is case-insensitive', () => {
-    expect(shouldTriggerSearch('LATEST NEWS')).toBe(true);
-    expect(shouldTriggerSearch('Berkeley Events')).toBe(true);
+    expect(shouldTriggerSearch('SEARCH FOR info')).toBe(true);
+    expect(shouldTriggerSearch('LOOK UP contacts')).toBe(true);
   });
 });
 
