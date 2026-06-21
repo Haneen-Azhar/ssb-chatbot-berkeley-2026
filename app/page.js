@@ -970,6 +970,7 @@ function ChatAppInner() {
       try {
         const controller = new AbortController();
         abortRef.current = controller;
+        const clientTimeout = setTimeout(() => controller.abort(), 55000);
 
         const response = await fetch('/api/chat/stream', {
           method: 'POST',
@@ -993,14 +994,6 @@ function ChatAppInner() {
         }
 
         const streamId = 'stream-' + Date.now();
-        const assistantMessage = {
-          role: 'assistant',
-          content: '',
-          timestamp: new Date().toISOString(),
-          streamId,
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -1009,7 +1002,7 @@ function ChatAppInner() {
         let displayedLen = 0;
         let streamDone = false;
         let streamBubble = null;
-        let firstTokenReceived = false;
+        let bubbleAdded = false;
         let lastSyncLen = 0;
 
         const CHARS_PER_FRAME = 4;
@@ -1042,7 +1035,6 @@ function ChatAppInner() {
             if (revealResolve) revealResolve();
           }
         }
-        requestAnimationFrame(revealLoop);
 
         const syncInterval = setInterval(() => {
           if (fullResponse.length > lastSyncLen) {
@@ -1072,13 +1064,31 @@ function ChatAppInner() {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
-                  if (!firstTokenReceived) {
-                    firstTokenReceived = true;
+                  if (!bubbleAdded) {
+                    bubbleAdded = true;
                     setIsTyping(false);
+                    setMessages((prev) => [...prev, {
+                      role: 'assistant',
+                      content: '',
+                      timestamp: new Date().toISOString(),
+                      streamId,
+                    }]);
+                    requestAnimationFrame(revealLoop);
                   }
                   fullResponse += data.text;
                 } else if (data.type === 'error') {
                   fullResponse = fullResponse || `Sorry, something went wrong. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
+                  if (!bubbleAdded) {
+                    bubbleAdded = true;
+                    setIsTyping(false);
+                    setMessages((prev) => [...prev, {
+                      role: 'assistant',
+                      content: '',
+                      timestamp: new Date().toISOString(),
+                      streamId,
+                    }]);
+                    requestAnimationFrame(revealLoop);
+                  }
                 }
               } catch (e) {
                 console.error('JSON parse error:', e);
@@ -1088,20 +1098,29 @@ function ChatAppInner() {
         }
 
         streamDone = true;
+        clearTimeout(clientTimeout);
         clearInterval(syncInterval);
 
-        if (!firstTokenReceived) {
+        if (!bubbleAdded) {
           setIsTyping(false);
+          fullResponse = fullResponse || `Sorry, I couldn't generate a response. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
+          setMessages((prev) => [...prev, {
+            role: 'assistant',
+            content: fullResponse,
+            timestamp: new Date().toISOString(),
+          }]);
         }
 
         if (!fullResponse) {
           fullResponse = `Sorry, I couldn't generate a response. Please try again.\n\nFor urgent help, call SSB 24/7 Helpline: **+1.858.779.0555**`;
         }
 
-        await new Promise((resolve) => {
-          revealResolve = resolve;
-          if (displayedLen >= fullResponse.length) resolve();
-        });
+        if (bubbleAdded) {
+          await new Promise((resolve) => {
+            revealResolve = resolve;
+            if (displayedLen >= fullResponse.length) resolve();
+          });
+        }
 
         setMessages((prev) => {
           const updated = [...prev];
@@ -1161,6 +1180,9 @@ function ChatAppInner() {
             const last = prev[prev.length - 1];
             if (last && last.role === 'assistant' && !last.content) {
               return prev.slice(0, -1);
+            }
+            if (last && last.role === 'assistant' && last.content) {
+              return prev;
             }
             return prev;
           });
