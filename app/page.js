@@ -1009,7 +1009,7 @@ function ChatAppInner() {
         let bubbleAdded = false;
         let lastSyncLen = 0;
 
-        const CHARS_PER_FRAME = 4;
+        const CHARS_PER_FRAME = 12;
         const SYNC_INTERVAL = 200;
         let lastRendered = '';
         let revealResolve = null;

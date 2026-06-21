@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '../lib/prompts.js';
+import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext, isConversational } from '../lib/prompts.js';
 
 // ─── SYSTEM_PROMPT ───────────────────────────────────────────────────────────
 
@@ -48,8 +48,8 @@ describe('SYSTEM_PROMPT', () => {
     expect(SYSTEM_PROMPT).toContain('https://docs.google.com/forms/d/e/1FAIpQLSdvScv2Kfcxbkh2N81ukoJLocuTXmVt1d1xrjpqX5q_Rk-IKg/viewform');
   });
 
-  it('contains current date and time injection', () => {
-    expect(SYSTEM_PROMPT).toContain('Current date and time:');
+  it('contains current date injection', () => {
+    expect(SYSTEM_PROMPT).toContain('Current date:');
     expect(SYSTEM_PROMPT).toContain('Pacific Time');
   });
 });
@@ -278,5 +278,38 @@ describe('buildRoleContext', () => {
   it('falls back to "staff member" when no name provided', () => {
     const result = buildRoleContext({ role: 'Mentor' });
     expect(result).toContain('staff member');
+  });
+});
+
+// ─── isConversational ──────────────────────────────────────────────────────────
+
+describe('isConversational', () => {
+  describe('returns true for casual messages', () => {
+    const casual = ['hey', 'hi', 'thanks', 'ok', 'yo', 'bye', 'lol', 'k', 'yes', 'no', 'ty'];
+    casual.forEach((msg) => {
+      it(`"${msg}"`, () => {
+        expect(isConversational(msg)).toBe(true);
+      });
+    });
+  });
+
+  it('returns true for very short messages', () => {
+    expect(isConversational('hi')).toBe(true);
+    expect(isConversational('ok!')).toBe(true);
+  });
+
+  describe('returns false for KB-answerable questions', () => {
+    const substantive = [
+      'what is the staff ratio',
+      'how to file incident report',
+      'give me mentor groups',
+      'what are the bed check procedures',
+      'who is the program director',
+    ];
+    substantive.forEach((msg) => {
+      it(`"${msg}"`, () => {
+        expect(isConversational(msg)).toBe(false);
+      });
+    });
   });
 });

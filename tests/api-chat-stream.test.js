@@ -23,6 +23,7 @@ vi.mock('@/lib/prompts', () => ({
   buildUserPrompt: vi.fn().mockReturnValue('built prompt'),
   shouldTriggerSearch: vi.fn().mockReturnValue(false),
   buildRoleContext: vi.fn().mockReturnValue(''),
+  isConversational: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('@/lib/database', () => ({
