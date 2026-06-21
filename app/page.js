@@ -970,7 +970,11 @@ function ChatAppInner() {
       try {
         const controller = new AbortController();
         abortRef.current = controller;
-        const clientTimeout = setTimeout(() => controller.abort(), 30000);
+        let clientTimeout = setTimeout(() => controller.abort(), 30000);
+        function resetTimeout() {
+          clearTimeout(clientTimeout);
+          clientTimeout = setTimeout(() => controller.abort(), 15000);
+        }
 
         const response = await fetch('/api/chat/stream', {
           method: 'POST',
@@ -1064,6 +1068,7 @@ function ChatAppInner() {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === 'text') {
+                  resetTimeout();
                   if (!bubbleAdded) {
                     bubbleAdded = true;
                     setIsTyping(false);
