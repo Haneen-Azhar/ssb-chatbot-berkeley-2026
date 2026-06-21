@@ -39,9 +39,9 @@ describe('searchKnowledgeBase', () => {
       expect(first).toHaveProperty('sourceLabel');
     });
 
-    it('returns at most 5 results (top 5)', () => {
+    it('returns at most 3 results', () => {
       const results = searchKnowledgeBase('student medical emergency fire safety');
-      expect(results.length).toBeLessThanOrEqual(5);
+      expect(results.length).toBeLessThanOrEqual(3);
     });
 
     it('results are sorted by score descending', () => {

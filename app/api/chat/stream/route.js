@@ -1,7 +1,7 @@
 import { getUser } from '@/lib/auth';
 import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
-import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
+import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext, isConversational } from '@/lib/prompts';
 import { logQuery, getCampusMemoryContext } from '@/lib/database';
 import { chatLimiter } from '@/lib/rateLimit';
 import { validateChatInput } from '@/lib/validation';
@@ -42,19 +42,21 @@ export async function POST(request) {
 
     const { message, history, sessionId } = body;
 
-    const useWebSearch = shouldTriggerSearch(message);
+    const casual = isConversational(message);
+    const useWebSearch = !casual && shouldTriggerSearch(message);
+
     const [, user, kbResults, searchResults, campusContext] = await Promise.all([
       kbLoadPromise,
       getUser(request),
-      kbLoadPromise.then(() => searchKnowledgeBase(message)),
+      casual ? Promise.resolve([]) : kbLoadPromise.then(() => searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
-      Promise.race([
+      casual ? Promise.resolve('') : Promise.race([
         getCampusMemoryContext(),
-        new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
+        new Promise((resolve) => setTimeout(() => resolve(''), 2000)),
       ]),
     ]);
 
-    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
+    const dynamicContext = buildRoleContext(user?.profile) + campusContext;
     const userPrompt = buildUserPrompt(message, kbResults, searchResults);
 
     const sources = kbResults.map((r) => ({
@@ -68,6 +70,8 @@ export async function POST(request) {
     const messages = [...(history || [])];
     messages.push({ role: 'user', content: userPrompt });
 
+    const maxTokens = casual ? 512 : 2048;
+
     const encoder = new TextEncoder();
     let fullResponse = '';
 
@@ -78,18 +82,23 @@ export async function POST(request) {
             encoder.encode(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`)
           );
 
+          const systemBlocks = [
+            {
+              type: 'text',
+              text: SYSTEM_PROMPT,
+              cache_control: { type: 'ephemeral' },
+            },
+          ];
+          if (dynamicContext) {
+            systemBlocks.push({ type: 'text', text: dynamicContext });
+          }
+
           const response = await anthropic.messages.create({
             model: 'claude-sonnet-4-6',
-            max_tokens: 8192,
+            max_tokens: maxTokens,
             temperature: 0.3,
             stream: true,
-            system: [
-              {
-                type: 'text',
-                text: systemPrompt,
-                cache_control: { type: 'ephemeral' },
-              },
-            ],
+            system: systemBlocks,
             messages,
           });
 

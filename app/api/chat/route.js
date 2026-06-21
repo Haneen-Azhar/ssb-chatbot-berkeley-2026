@@ -3,7 +3,7 @@ import { getUser } from '@/lib/auth';
 import { getChatResponse } from '@/lib/claude';
 import { loadKnowledgeBase, searchKnowledgeBase } from '@/lib/knowledgeBase';
 import { webSearch } from '@/lib/search';
-import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext } from '@/lib/prompts';
+import { SYSTEM_PROMPT, buildUserPrompt, shouldTriggerSearch, buildRoleContext, isConversational } from '@/lib/prompts';
 import { logQuery, getCampusMemoryContext } from '@/lib/database';
 import { chatLimiter } from '@/lib/rateLimit';
 import { validateChatInput } from '@/lib/validation';
@@ -16,7 +16,6 @@ export async function POST(request) {
   const startTime = Date.now();
 
   try {
-    // Rate limit
     const { limited } = chatLimiter(request);
     if (limited) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
@@ -34,23 +33,25 @@ export async function POST(request) {
 
     const { message, history, sessionId } = body;
 
-    const useWebSearch = shouldTriggerSearch(message);
+    const casual = isConversational(message);
+    const useWebSearch = !casual && shouldTriggerSearch(message);
+
     const [, user, kbResults, searchResults, campusContext] = await Promise.all([
       kbLoadPromise,
       getUser(request),
-      kbLoadPromise.then(() => searchKnowledgeBase(message)),
+      casual ? Promise.resolve([]) : kbLoadPromise.then(() => searchKnowledgeBase(message)),
       useWebSearch ? webSearch(message) : Promise.resolve(null),
-      Promise.race([
+      casual ? Promise.resolve('') : Promise.race([
         getCampusMemoryContext(),
-        new Promise((resolve) => setTimeout(() => resolve(''), 3000)),
+        new Promise((resolve) => setTimeout(() => resolve(''), 2000)),
       ]),
     ]);
 
-    const systemPrompt = SYSTEM_PROMPT + buildRoleContext(user?.profile) + campusContext;
+    const dynamicContext = buildRoleContext(user?.profile) + campusContext;
+    const systemPrompt = SYSTEM_PROMPT + dynamicContext;
 
     const userPrompt = buildUserPrompt(message, kbResults, searchResults);
 
-    // Get Claude response
     const result = await getChatResponse(systemPrompt, userPrompt, history || []);
 
     if (!result.success) {
@@ -60,7 +61,6 @@ export async function POST(request) {
       );
     }
 
-    // Build sources array from KB results
     const sources = kbResults.map((r) => ({
       file: r.file,
       header: r.header,
@@ -71,7 +71,6 @@ export async function POST(request) {
 
     const responseTimeMs = Date.now() - startTime;
 
-    // Log query async if user exists — don't block the response
     if (user) {
       logQuery({
         userId: user.id,
