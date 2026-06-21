@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth';
-import { getCampusMemory, addCampusMemory, updateCampusMemory, deleteCampusMemory } from '@/lib/database';
+import { getCampusMemory, addCampusMemory, updateCampusMemory, deleteCampusMemory, invalidateCampusMemoryIndex } from '@/lib/database';
 
 export async function GET(request) {
   const user = await getUser(request);
@@ -35,6 +35,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
     }
 
+    invalidateCampusMemoryIndex();
     return NextResponse.json({ memory });
   } catch (err) {
     console.error('POST campus-memory error:', err);
@@ -59,6 +60,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
     }
 
+    invalidateCampusMemoryIndex();
     return NextResponse.json({ memory });
   } catch (err) {
     console.error('PUT campus-memory error:', err);
@@ -78,5 +80,6 @@ export async function DELETE(request) {
   }
 
   const success = await deleteCampusMemory(id);
+  if (success) invalidateCampusMemoryIndex();
   return NextResponse.json({ success });
 }
